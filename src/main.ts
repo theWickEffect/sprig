@@ -35,6 +35,7 @@ import { objMap } from "./utils/util.js";
 import { startNet } from "./net/net-main.js";
 import { initPhysicsSystems } from "./physics/phys.js";
 import { GAME_LOADER } from "./game-loader.js";
+import { initJoelGame } from "./joelgame/joel-game.js";
 
 // dbgLogMilestone("start of main.ts");
 
@@ -63,6 +64,7 @@ const defaultGames: Record<string, () => Promise<void>> = {
   particles: initGameParticles,
   ld55: initLd55,
   "multi-scene": initMultiSceneGame,
+  joel: initJoelGame
 };
 
 Object.entries(defaultGames).forEach(([name, init]) =>
@@ -75,7 +77,7 @@ const DEFAULT_GAME: keyof typeof defaultGames = (
   // "painterly"
   // "graybox-ship-arena"
   // "ld53"
-  "ld54"
+  // "ld54"
   // "gjk"
   // "graybox-starter"
   // "font"
@@ -83,6 +85,7 @@ const DEFAULT_GAME: keyof typeof defaultGames = (
   // "particles"
   // "ld55"
   // "multi-scene"
+  "joel"
 );
 
 // Run simulation with a fixed timestep @ 60hz
