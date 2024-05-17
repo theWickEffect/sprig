@@ -21,7 +21,7 @@ import { outlineRender } from "../render/pipelines/std-outline.js";
 import { postProcess } from "../render/pipelines/std-post.js";
 import { shadowPipelines } from "../render/pipelines/std-shadow.js";
 import { RendererDef, RenderableConstructDef } from "../render/renderer-ecs.js";
-import { sketch } from "../utils/sketch.js";
+import { sketch, sketchLine } from "../utils/sketch.js";
 import { addWorldGizmo } from "../utils/utils-game.js";
 import { createObj, defineObj } from "../ecs/em-objects.js";
 import { createSun, initGhost } from "../graybox/graybox-helpers.js";
@@ -33,14 +33,14 @@ import { tmpStack } from "../matrix/sprig-matrix.js";
 const DBG_GHOST = true;
 
 export module J3{
-  export function add(vA: V3, vB: V3, newVector?: boolean): V3{
+  export function add(vA: V3, vB: V3, newVector: boolean = true): V3{
     const vOut = newVector ? V3.mk() : vA;
     vOut[0] = vA[0] + vB[0];
     vOut[1] = vA[1] + vB[1];
     vOut[2] = vA[2] + vB[2];
     return vOut;
   }
-  export function sub(vA: V3, vB: V3, newVector?: boolean): V3{
+  export function sub(vA: V3, vB: V3, newVector: boolean = true): V3{
     const vOut = newVector ? V3.mk() : vA;
     vOut[0] = vA[0] - vB[0];
     vOut[1] = vA[1] - vB[1];
@@ -54,7 +54,7 @@ export module J3{
     vOut[2] = vA[2] * scale;
     return vOut;
   }
-  function norm(v: V3, newVector: boolean = true):V3 {
+  export function norm(v: V3, newVector: boolean = true):V3 {
     const vOut = newVector ? V3.mk() : v;
     let x = v[0];
     let y = v[1];
@@ -140,6 +140,7 @@ export async function initJoelGame() {
   
   const wallHeight = 20;
   const wallWidth = 10;
+  
 
   //build wall
   const wall = EM.mk();
@@ -164,6 +165,8 @@ export async function initJoelGame() {
   }
 
   //generate guy
+
+  const GUY_SCALE = .5
   
   function mkEntity(mesh: Mesh, position: V3, scale: number, color: V3 ):EntityW<[typeof PositionDef]>{
     let ent = EM.mk();
@@ -175,7 +178,7 @@ export async function initJoelGame() {
   }
 
   function mkGrayCube(position:V3, scale: number): EntityW<[typeof PositionDef]>{
-    return mkEntity(mkCubeMesh(), position, scale, ENDESGA16.darkGray);
+    return mkEntity(mkCubeMesh(), J3.scale(position, GUY_SCALE, false), scale * GUY_SCALE, ENDESGA16.darkGray);
   }
 
   
@@ -237,10 +240,10 @@ export async function initJoelGame() {
   let rHip = mkGCPoint(V(-3.4,0,2.8), .2, false);
   bodyPoints.push(rHip);
   //left foot
-  let lf = mkGCPoint(V(-4,0,1.6), .2, false);
+  let lf = mkGCPoint(V(-4,0,1.2), .2, false);
   bodyPoints.push(lf);
   //right foot
-  let rf = mkGCPoint(V(-3.4,0,1.6), .2, false);
+  let rf = mkGCPoint(V(-3.4,0,1.2), .2, false);
   bodyPoints.push(rf);
   
 
@@ -280,8 +283,8 @@ export async function initJoelGame() {
 
 
   const GRAVITY = .008
-  const STICK_ITTERATIONS = 40;
-  let waitCount = 20;
+  const STICK_ITTERATIONS = 90;
+  let waitCount = 40;
   let fixedMoveCount = 65;
   let moveAmt = V(.006,-.1,.4);
 
@@ -307,6 +310,7 @@ export async function initJoelGame() {
   
   //update points and sticks each frame:
   EM.addSystem("stickAndPoint",Phase.GAME_WORLD,[],[],()=>{
+
     //update points and add gravity:
     
 
@@ -323,11 +327,13 @@ export async function initJoelGame() {
           fixedUpdate(point);
           fixedMoveCount--;
         }
-        else if(fixedMoveCount===0){
-          fixedMoveCount--;
-          point.fixed = false;
-          rh.fixed = true;
-        }
+        else if (fixedMoveCount<=0 && fixedMoveCount>-5) fixedMoveCount--;
+        
+        // else if(fixedMoveCount===0){
+        //   fixedMoveCount--;
+        //   point.fixed = false;
+        //   rh.fixed = true;
+        // }
       //   if(point.position===point.prevPosition){
       //     V3.add(point.position, V(10,-10,10),point.position);
       //     point.fixed = false;
@@ -356,32 +362,49 @@ export async function initJoelGame() {
 
     //adjust points to reconcile stick lengths:
     // if (false)
-    const _stk = tmpStack();
+    // const _stk = tmpStack();
     for(let i = 0; i<STICK_ITTERATIONS;i++){
       const randArr = randomOrderArray(sticks.length);
       for(let j=0;j<sticks.length;j++){
         let stick = sticks[randArr[j]];
         // V3.mid()
-        let stickCenter = V3.scale(V3.add(stick.pointA.position, stick.pointB.position),.5);
-        const stickDir = V3.norm(V3.sub(stick.pointA.position, stick.pointB.position));
+        let stickCenter = J3.scale(J3.add(stick.pointA.position, stick.pointB.position,true),.5,false);
+        const stickDir = J3.norm(J3.sub(stick.pointA.position, stick.pointB.position,true));
+        J3.scale(stickDir, stick.length/2, false);
         if(!stick.pointA.fixed){
-          V3.copy(stick.pointA.position, V3.add(stickCenter,V3.scale(stickDir,stick.length/2)));
+          stick.pointA.position = J3.add(stickCenter,stickDir,true);
+          // V3.copy(stick.pointA.position, V3.add(stickCenter,V3.scale(stickDir,stick.length/2)));
         }
         // else V3.copy(stickCenter, V3.add(stick.pointA.position,V3.scale(stickDir,stick.length/2)));
         if(!stick.pointB.fixed){
-          V3.copy(stick.pointB.position, V3.sub(stickCenter,V3.scale(stickDir,stick.length/2)));
+          stick.pointB.position = J3.sub(stickCenter,stickDir,false);
+          // V3.copy(stick.pointB.position, V3.sub(stickCenter,V3.scale(stickDir,stick.length/2)));
         }
         // else V3.copy(stick.pointA.position, V3.add(stick.pointA.position,V3.scale(stickDir,stick.length/2)));
       }
       // to do: shuffle sticks array
-      _stk.popAndRemark();
+      // _stk.popAndRemark();
     }
-    _stk.pop();
+    // _stk.pop();
 
     // set object locations to their calculated locatoins:
     for(let point of bodyPoints){
       EM.set(point.object,PositionDef,point.position);
     }
+
+    if(fixedMoveCount === -5){
+      fixedMoveCount--;
+      head.fixed = false;
+      rh.fixed = true;
+    }
+
+
+    // draw sticks
+    for (let i = 0; i < sticks.length; i++)
+      sketchLine(sticks[i].pointA.position, sticks[i].pointB.position, {
+        color: ENDESGA16.lightGray,
+        key: `stick_${i}`
+      })
 
   });
 
