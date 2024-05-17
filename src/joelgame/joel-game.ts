@@ -28,8 +28,53 @@ import { createSun, initGhost } from "../graybox/graybox-helpers.js";
 import { Mesh, scaleMesh } from "../meshes/mesh.js";
 import { Phase } from "../ecs/sys-phase.js";
 import { Entity, EntityW } from "../ecs/em-entities.js";
+import { tmpStack } from "../matrix/sprig-matrix.js";
 
 const DBG_GHOST = true;
+
+export module J3{
+  export function add(vA: V3, vB: V3, newVector?: boolean): V3{
+    const vOut = newVector ? V3.mk() : vA;
+    vOut[0] = vA[0] + vB[0];
+    vOut[1] = vA[1] + vB[1];
+    vOut[2] = vA[2] + vB[2];
+    return vOut;
+  }
+  export function sub(vA: V3, vB: V3, newVector?: boolean): V3{
+    const vOut = newVector ? V3.mk() : vA;
+    vOut[0] = vA[0] - vB[0];
+    vOut[1] = vA[1] - vB[1];
+    vOut[2] = vA[2] - vB[2];
+    return vOut;
+  }
+  export function scale(vA: V3, scale: number, newVector: boolean = true): V3{
+    const vOut = newVector ? V3.mk() : vA;
+    vOut[0] = vA[0] * scale;
+    vOut[1] = vA[1] * scale;
+    vOut[2] = vA[2] * scale;
+    return vOut;
+  }
+  function norm(v: V3, newVector: boolean = true):V3 {
+    const vOut = newVector ? V3.mk() : v;
+    let x = v[0];
+    let y = v[1];
+    let z = v[2];
+    let len = x * x + y * y + z * z;
+
+    if (len > 0) {
+        len = 1 / Math.sqrt(len);
+    }
+
+    vOut[0] = v[0] * len;
+    vOut[1] = v[1] * len;
+    vOut[2] = v[2] * len;
+
+    return vOut;
+  }
+  
+}
+
+
 
 export async function initJoelGame() {
   stdGridRender.fragOverrides!.lineSpacing1 = 8.0;
@@ -119,6 +164,7 @@ export async function initJoelGame() {
   }
 
   //generate guy
+  
   function mkEntity(mesh: Mesh, position: V3, scale: number, color: V3 ):EntityW<[typeof PositionDef]>{
     let ent = EM.mk();
     EM.set(ent, RenderableConstructDef, mesh);
@@ -141,134 +187,62 @@ export async function initJoelGame() {
     object: e, fixed: fixed};
   }
 
-  function mkGCPoint(position:V3, scale: number, fixed: boolean): Point{
+  function mkGCPoint(position:V3, scale: number = .2, fixed: boolean = false): Point{
     return mkPoint(mkGrayCube(position,scale),fixed);
   }
+
+  //stuff for refac:
+  // const myData = {
+  //   points: [
+  //     {offset: V(-4.2,0,5), scale: 3, fixed: true}, // lh
+  //     {offset: V(-4.2,0,5), }, // ls
+  //     {offset: V(-4.2,0,5), },
+  //     {offset: V(-4.2,0,5), },
+  //   ],
+  //   sticks: [
+  //     [0, 1], // lh to ls
+  //     [1, 2],
+  //     [0, 2]
+  //   ]
+  // }
 
 
   let bodyPoints: Point[] = [];
 
-  //bodyPoints array contains points with definitions for position, prevPosition, fixed, and object
-  // let bodyPoints: {position:V3,prevPosition:V3,fixed:Boolean,object:Entity}[] = [];
   //left hand
-  let lh = mkGCPoint(V(-4.2,0,5), .2, true);
+  let lh = mkGCPoint(V(-4.2,0,5), .2, false);
   bodyPoints.push(lh)
-  
-  
-  //
-  // let lh = mkGrayCube();
-  // // let lh = EM.mk();
-  // EM.set(lh,RenderableConstructDef, mkCubeMesh());
-  // EM.set(lh, ColorDef, ENDESGA16.darkGray);
-  // EM.set(lh,PositionDef,V(-4.2,0,5));
-  // EM.set(lh,ScaleDef,V(.2,.2,.2));
-  // function mkPoint(e: EntityW<[typeof PositionDef]>): Point {
-    
-  // }
-  // let lhPoint = {position:V3.clone(lh.position), prevPosition:V3.clone(lh.position), fixed:true, object:lh}
-  // bodyPoints.push(lhPoint);
   //left shoulder
-  let ls = mkGCPoint(V(-4.2,0,4), .2, false);
+  let ls = mkGCPoint(V(-4.2,0,4));
   bodyPoints.push(ls);
-  // let ls = EM.mk();
-  // EM.set(ls,RenderableConstructDef, mkCubeMesh());
-  // EM.set(ls, ColorDef, ENDESGA16.darkGray);
-  // EM.set(ls,PositionDef,V(-4.2,0,4));
-  // EM.set(ls,ScaleDef,V(.2,.2,.2));
-  // let ls = {position:ls.position, prevPosition:ls.position, fixed:false, object:ls}
-  // bodyPoints.push(lsPoint);
-
   //right hand
-  let rh = mkGCPoint(V(-3.2,0,3), .2, false);
+  let rh = mkGCPoint(V(-3.2,0,3));
   bodyPoints.push(rh);
-
-  // let rh = EM.mk();
-  // EM.set(rh,RenderableConstructDef, mkCubeMesh());
-  // EM.set(rh, ColorDef, ENDESGA16.darkGray);
-  // EM.set(rh,PositionDef,V(-3.2,0,3));
-  // EM.set(rh,ScaleDef,V(.2,.2,.2));
-  // let rhPoint = {position:rh.position, prevPosition:rh.position, fixed:false, object:rh}
-  // bodyPoints.push(rhPoint);
   //right shoulder
   let rs = mkGCPoint(V(-3.2,0,4), .2, false);
   bodyPoints.push(rs);
-  // let rs = EM.mk();
-  // EM.set(rs,RenderableConstructDef, mkCubeMesh());
-  // EM.set(rs, ColorDef, ENDESGA16.darkGray);
-  // EM.set(rs,PositionDef,V(-3.2,0,4));
-  // EM.set(rs,ScaleDef,V(.2,.2,.2));
-  // let rsPoint = {position:rs.position, prevPosition:rs.position, fixed:false, object:rs}
-  // bodyPoints.push(rsPoint);
   //sternum
   let sternum = mkGCPoint(V(-3.7,0,3.9), .002, false);
   bodyPoints.push(sternum);
-  // let ster = EM.mk();
-  // EM.set(ster,RenderableConstructDef, mkCubeMesh());
-  // EM.set(ster, ColorDef, ENDESGA16.darkGray);
-  // EM.set(ster,PositionDef,V(-3.7,0,3.9));
-  // EM.set(ster,ScaleDef,V(.002,.002,.002));
-  // let sterPoint = {position:ster.position, prevPosition:ster.position, fixed:false, object:ster}
-  // bodyPoints.push(sterPoint);
   //head
-  let head = mkGCPoint(V(-3.7,0,4.5), .4, false);
+  let head = mkGCPoint(V(-3.7,0,4.5), .4, true);
   bodyPoints.push(head);
-  // let head = EM.mk();
-  // EM.set(head,RenderableConstructDef, mkCubeMesh());
-  // EM.set(head, ColorDef, ENDESGA16.darkGray);
-  // EM.set(head,PositionDef,V(-3.7,0,4.5));
-  // EM.set(head,ScaleDef,V(.4,.4,.4));
-  // let headPoint = {position:head.position, prevPosition:head.position, fixed:false, object:head}
-  // bodyPoints.push(headPoint);
   //pelvis
   let pelvis = mkGCPoint(V(-3.7,0,2.8), .2, false);
   bodyPoints.push(pelvis);
-  // let pelvis = EM.mk();
-  // EM.set(pelvis,RenderableConstructDef, mkCubeMesh());
-  // EM.set(pelvis, ColorDef, ENDESGA16.darkGray);
-  // EM.set(pelvis,PositionDef,V(-3.7,0,2.8));
-  // EM.set(pelvis,ScaleDef,V(.1,.1,.1));
-  // let pelvisPoint = {position:pelvis.position, prevPosition:pelvis.position, fixed:false, object:pelvis}
-  // bodyPoints.push(pelvisPoint);
   //left hip
   let lHip = mkGCPoint(V(-4,0,2.8), .2, false);
   bodyPoints.push(lHip);
-  // let lHip = EM.mk();
-  // EM.set(lHip,RenderableConstructDef, mkCubeMesh());
-  // EM.set(lHip, ColorDef, ENDESGA16.darkGray);
-  // EM.set(lHip,PositionDef,V(-4,0,2.8));
-  // EM.set(lHip,ScaleDef,V(.2,.2,.2));
-  // let lHipPoint = {position:lHip.position, prevPosition:lHip.position, fixed:false, object:lHip}
-  // bodyPoints.push(lHipPoint);
   //right hip
   let rHip = mkGCPoint(V(-3.4,0,2.8), .2, false);
   bodyPoints.push(rHip);
-  // let rHip = EM.mk();
-  // EM.set(rHip,RenderableConstructDef, mkCubeMesh());
-  // EM.set(rHip, ColorDef, ENDESGA16.darkGray);
-  // EM.set(rHip,PositionDef,V(-3.4,0,2.8));
-  // EM.set(rHip,ScaleDef,V(.2,.2,.2));
-  // let rHipPoint = {position:rHip.position, prevPosition:rHip.position, fixed:false, object:rHip}
-  // bodyPoints.push(rHipPoint);
   //left foot
   let lf = mkGCPoint(V(-4,0,1.6), .2, false);
   bodyPoints.push(lf);
-  // let lf = EM.mk();
-  // EM.set(lf,RenderableConstructDef, mkCubeMesh());
-  // EM.set(lf, ColorDef, ENDESGA16.darkGray);
-  // EM.set(lf,PositionDef,V(-4,0,1.6));
-  // EM.set(lf,ScaleDef,V(.2,.2,.2));
-  // let lfPoint = {position:lf.position, prevPosition:lf.position, fixed:false, object:lf}
-  // bodyPoints.push(lfPoint);
   //right foot
   let rf = mkGCPoint(V(-3.4,0,1.6), .2, false);
   bodyPoints.push(rf);
-  // let rf = EM.mk();
-  // EM.set(rf,RenderableConstructDef, mkCubeMesh());
-  // EM.set(rf, ColorDef, ENDESGA16.darkGray);
-  // EM.set(rf,PositionDef,V(-3.4,0,1.6));
-  // EM.set(rf,ScaleDef,V(.2,.2,.2));
-  // let rfPoint = {position:rf.position, prevPosition:rf.position, fixed:false, object:rf}
-  // bodyPoints.push(rfPoint);
+  
 
   //sticks connecting points: pointA, pointB, length
   type Stick = {pointA: Point, pointB: Point, length: number}
@@ -276,6 +250,7 @@ export async function initJoelGame() {
   function mkStick(pointA: Point, pointB: Point): Stick{
     return {pointA, pointB, length:V3.dist(lh.position,ls.position)};
   }
+
   let sticks: Stick[] = [
     mkStick(lh,ls),
     mkStick(rh,rs),
@@ -295,74 +270,113 @@ export async function initJoelGame() {
     mkStick(lHip,lf)
   ];
 
+  function V3AddTo(vA: V3, vB: V3, newVector?: boolean): V3{
+    const vOut = newVector ? V3.mk() : vA;
+    vOut[0] = vA[0] + vB[0];
+    vOut[1] = vA[1] + vB[1];
+    vOut[2] = vA[2] + vB[2];
+    return vOut;
+  }
 
-    // {pointA:lh,pointB:ls,length:V3.dist(lh.position,ls.position)},
-    // {pointA:rh,pointB:rs,length:V3.dist(rh.position,rs.position)},
-    // {pointA:ls,pointB:rs,length:V3.dist(ls.position,rs.position)},
-    // {pointA:ls,pointB:sternum,length:V3.dist(ls.position,sternum.position)},
-    // {pointA:rs,pointB:sternum,length:V3.dist(rs.position,sternum.position)},
-    // {pointA:head,pointB:sternum,length:V3.dist(head.position,sternum.position)},
-    // {pointA:head,pointB:ls,length:V3.dist(head.position,ls.position)},
-    // {pointA:head,pointB:rs,length:V3.dist(head.position,rs.position)},
-    // {pointA:pelvis,pointB:sternum,length:V3.dist(pelvis.position,sternum.position)},
-    // {pointA:pelvis,pointB:ls,length:V3.dist(pelvis.position,ls.position)},
-    // {pointA:pelvis,pointB:rs,length:V3.dist(pelvis.position,rs.position)},
-    // {pointA:pelvis,pointB:rHip,length:V3.dist(pelvis.position,rHip.position)},
-    // {pointA:pelvis,pointB:lHip,length:V3.dist(pelvis.position,lHip.position)},
-  //   {pointA:rHip,pointB:lHip,length:V3.dist(rHip.position,lHip.position)},
-  //   {pointA:lf,pointB:lHip,length:V3.dist(lf.position,lHip.position)},
-  //   {pointA:rf,pointB:rHip,length:V3.dist(rf.position,rHip.position)}
-  // ];
+
+  const GRAVITY = .008
+  const STICK_ITTERATIONS = 40;
+  let waitCount = 20;
+  let fixedMoveCount = 65;
+  let moveAmt = V(.006,-.1,.4);
+
+  function getRandomInt(min:number, max:number):number {
+    const minCeiled = Math.ceil(min);
+    const maxFloored = Math.floor(max);
+    return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); // The maximum is exclusive and the minimum is inclusive
+  }
   
-  const GRAVITY = -100
-  const STICK_ITTERATIONS = 5;
-  let fixedMoveCount = 180;
+  function randomOrderArray(length:number): number[]{
+    let set: Set<number> = new Set();
+    let arr: number[] = []
+    while(set.size<length){
+      let randInt = getRandomInt(0,length);
+      if(!set.has(randInt)){
+        set.add(randInt);
+        arr.push(randInt);
+      }
+    }
+    return arr;
+  }
 
   
   //update points and sticks each frame:
   EM.addSystem("stickAndPoint",Phase.GAME_WORLD,[],[],()=>{
     //update points and add gravity:
+    
+
+
     for(let point of bodyPoints){
+      if (point.position===point.prevPosition){
+        point.prevPosition = V3.copy(point.prevPosition, V3.add(point.prevPosition,V(-10,10,-10)));
+      }
       if(point.fixed){
-        if(fixedMoveCount>0){
+        if(waitCount>0){
+          waitCount--;
+        }
+        else if(fixedMoveCount>0){
           fixedUpdate(point);
           fixedMoveCount--;
         }
+        else if(fixedMoveCount===0){
+          fixedMoveCount--;
+          point.fixed = false;
+          rh.fixed = true;
+        }
+      //   if(point.position===point.prevPosition){
+      //     V3.add(point.position, V(10,-10,10),point.position);
+      //     point.fixed = false;
+      //     continue;
+      //   }
+      //   else point.fixed = false;
         continue;
       }
-      const nextPrevPosition = V3.clone(point.position);
-      V3.add(V3.sub(point.position,point.prevPosition),point.position, point.position);
-      // point.position[2] -= GRAVITY;
-      console.log("1: " + point.position[2]);
-      // V3.add(V(0,0,GRAVITY),point.position, point.position)
-      console.log("2: " + point.position[2]);
-      V3.copy(point.prevPosition, nextPrevPosition);
+      else{
+        const nextPrevPosition = V3.clone(point.position);
+        V3.add(V3.sub(point.position,point.prevPosition),point.position, point.position);
+        point.position[2] -= GRAVITY;
+        // V3.add(V(0,0,GRAVITY),point.position, point.position)
+        V3.copy(point.prevPosition, nextPrevPosition);
+      }
     }
 
     //function for updating "fixed" points: what happens to the fixed point each frame?
     //test:
     function fixedUpdate(point:{position:V3,prevPosition:V3,fixed:Boolean,object:Entity}){
-      let pos = V3.clone(V3.add(point.position,V(.05,-.05,.05)))
+      let pos = V3.clone(V3.add(point.position,moveAmt,point.position))
       EM.set(point.object,PositionDef,pos);
+      moveAmt[2]-=GRAVITY;
       point.position = pos;
     }
 
     //adjust points to reconcile stick lengths:
     // if (false)
+    const _stk = tmpStack();
     for(let i = 0; i<STICK_ITTERATIONS;i++){
-      for(let stick of sticks){
+      const randArr = randomOrderArray(sticks.length);
+      for(let j=0;j<sticks.length;j++){
+        let stick = sticks[randArr[j]];
         // V3.mid()
-        const stickCenter = V3.scale(V3.add(stick.pointA.position, stick.pointB.position),.5);
+        let stickCenter = V3.scale(V3.add(stick.pointA.position, stick.pointB.position),.5);
         const stickDir = V3.norm(V3.sub(stick.pointA.position, stick.pointB.position));
         if(!stick.pointA.fixed){
           V3.copy(stick.pointA.position, V3.add(stickCenter,V3.scale(stickDir,stick.length/2)));
         }
+        // else V3.copy(stickCenter, V3.add(stick.pointA.position,V3.scale(stickDir,stick.length/2)));
         if(!stick.pointB.fixed){
           V3.copy(stick.pointB.position, V3.sub(stickCenter,V3.scale(stickDir,stick.length/2)));
         }
+        // else V3.copy(stick.pointA.position, V3.add(stick.pointA.position,V3.scale(stickDir,stick.length/2)));
       }
       // to do: shuffle sticks array
+      _stk.popAndRemark();
     }
+    _stk.pop();
 
     // set object locations to their calculated locatoins:
     for(let point of bodyPoints){
