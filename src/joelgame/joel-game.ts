@@ -167,6 +167,9 @@ export async function initJoelGame() {
   //generate guy
 
   const GUY_SCALE = .5
+  const GUY_LH_ZERO = V(4.2,0,-5);
+  const GUY_LH_START = holds[0].position
+  const GUY_OFFSET = J3.add(GUY_LH_START,GUY_LH_ZERO);
   
   function mkEntity(mesh: Mesh, position: V3, scale: number, color: V3 ):EntityW<[typeof PositionDef]>{
     let ent = EM.mk();
@@ -191,7 +194,7 @@ export async function initJoelGame() {
   }
 
   function mkGCPoint(position:V3, scale: number = .2, fixed: boolean = false): Point{
-    return mkPoint(mkGrayCube(position,scale),fixed);
+    return mkPoint(mkGrayCube(J3.add(position,GUY_OFFSET,false),scale),fixed);
   }
 
   //stuff for refac:
@@ -208,6 +211,9 @@ export async function initJoelGame() {
   //     [0, 2]
   //   ]
   // }
+
+
+  
 
 
   let bodyPoints: Point[] = [];
@@ -273,20 +279,20 @@ export async function initJoelGame() {
     mkStick(lHip,lf)
   ];
 
-  function V3AddTo(vA: V3, vB: V3, newVector?: boolean): V3{
-    const vOut = newVector ? V3.mk() : vA;
-    vOut[0] = vA[0] + vB[0];
-    vOut[1] = vA[1] + vB[1];
-    vOut[2] = vA[2] + vB[2];
-    return vOut;
-  }
-
 
   const GRAVITY = .008
-  const STICK_ITTERATIONS = 90;
-  let waitCount = 40;
+  const STICK_ITTERATIONS = 20;
+  let waitCount = 60;
   let fixedMoveCount = 65;
   let moveAmt = V(.006,-.1,.4);
+  let mouseIsPressed = false;
+  let mouseStart = [0,0];
+  let mousePosition = [0,0];
+  // let rHandHold = false;
+  let holdHand = lh;
+  let jumpHand = rh;
+  const JUMP_SCALE = .01;
+  let jump = false;
 
   function getRandomInt(min:number, max:number):number {
     const minCeiled = Math.ceil(min);
@@ -316,15 +322,15 @@ export async function initJoelGame() {
 
 
     for(let point of bodyPoints){
-      if (point.position===point.prevPosition){
-        point.prevPosition = V3.copy(point.prevPosition, V3.add(point.prevPosition,V(-10,10,-10)));
-      }
+      // if (point.position===point.prevPosition){
+      //   point.prevPosition = V3.copy(point.prevPosition, V3.add(point.prevPosition,V(-10,10,-10)));
+      // }
       if(point.fixed){
         if(waitCount>0){
           waitCount--;
         }
         else if(fixedMoveCount>0){
-          fixedUpdate(point);
+          fixedMoveUpdate(point);
           fixedMoveCount--;
         }
         else if (fixedMoveCount<=0 && fixedMoveCount>-5) fixedMoveCount--;
@@ -353,12 +359,42 @@ export async function initJoelGame() {
 
     //function for updating "fixed" points: what happens to the fixed point each frame?
     //test:
-    function fixedUpdate(point:{position:V3,prevPosition:V3,fixed:Boolean,object:Entity}){
-      let pos = V3.clone(V3.add(point.position,moveAmt,point.position))
+    function fixedMoveUpdate(point: Point){
+      // let pos = V3.clone(V3.add(point.position,moveAmt,point.position))
+      let pos = J3.add(point.position,moveAmt,false);
       EM.set(point.object,PositionDef,pos);
+      point.prevPosition = pos;
       moveAmt[2]-=GRAVITY;
-      point.position = pos;
+      // point.position = pos;
     }
+    
+    // function InitJump(){
+    //   mouseIsPressed = true;
+    //   mouseStart[0] = ;
+    //   mouseStart[1] = ;
+    //   jumpHand.position = V3.clone(holdHand.position);
+    //   // jumpHand.fixed = true;
+    // }
+    // function DragJump(){
+    //   //
+    //   mousePosition[0] = ;
+    //   mousePosition[1] = ;
+    //   jumpHand.position[0]+= mousePosition[0]-mouseStart[0];
+    //   jumpHand.position[2]+= mousePosition[1]-mouseStart[1];
+      
+    // }
+    // function ReleaseJump(){
+    //   mousePosition[0] = ;
+    //   mousePosition[1] = ;
+    //   moveAmt[0] = (mouseStart[0] - mousePosition[0]) * JUMP_SCALE;
+    //   moveAmt[2] = (mouseStart[1] - mousePosition[1]) * JUMP_SCALE;
+    //   jump = true;
+    //   jumpHand.fixed = true;
+    //   holdHand.fixed = false;
+    // }
+    // function catchHold(){
+
+    // }
 
     //adjust points to reconcile stick lengths:
     // if (false)
@@ -402,7 +438,7 @@ export async function initJoelGame() {
     // draw sticks
     for (let i = 0; i < sticks.length; i++)
       sketchLine(sticks[i].pointA.position, sticks[i].pointB.position, {
-        color: ENDESGA16.lightGray,
+        color: ENDESGA16.blue,
         key: `stick_${i}`
       })
 
