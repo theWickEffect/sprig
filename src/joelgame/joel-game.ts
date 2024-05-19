@@ -29,6 +29,7 @@ import { Mesh, scaleMesh } from "../meshes/mesh.js";
 import { Phase } from "../ecs/sys-phase.js";
 import { Entity, EntityW } from "../ecs/em-entities.js";
 import { tmpStack } from "../matrix/sprig-matrix.js";
+import { InputsDef } from "../input/inputs.js";
 
 const DBG_GHOST = true;
 
@@ -219,7 +220,7 @@ export async function initJoelGame() {
   let bodyPoints: Point[] = [];
 
   //left hand
-  let lh = mkGCPoint(V(-4.2,0,5), .2, false);
+  let lh = mkGCPoint(V(-4.2,0,5), .2, true);
   bodyPoints.push(lh)
   //left shoulder
   let ls = mkGCPoint(V(-4.2,0,4));
@@ -234,7 +235,7 @@ export async function initJoelGame() {
   let sternum = mkGCPoint(V(-3.7,0,3.9), .002, false);
   bodyPoints.push(sternum);
   //head
-  let head = mkGCPoint(V(-3.7,0,4.5), .4, true);
+  let head = mkGCPoint(V(-3.7,0,4.5), .4, false);
   bodyPoints.push(head);
   //pelvis
   let pelvis = mkGCPoint(V(-3.7,0,2.8), .2, false);
@@ -286,13 +287,14 @@ export async function initJoelGame() {
   let fixedMoveCount = 65;
   let moveAmt = V(.006,-.1,.4);
   let mouseIsPressed = false;
-  let mouseStart = [0,0];
-  let mousePosition = [0,0];
+  let mouseStart = V(0,0);
+  let mousePosition = V(0,0);
   // let rHandHold = false;
   let holdHand = lh;
   let jumpHand = rh;
   const JUMP_SCALE = .01;
   let jump = false;
+  let escapeCurrentHoldCount = 20;
 
   function getRandomInt(min:number, max:number):number {
     const minCeiled = Math.ceil(min);
@@ -315,39 +317,59 @@ export async function initJoelGame() {
 
   
   //update points and sticks each frame:
-  EM.addSystem("stickAndPoint",Phase.GAME_WORLD,[],[],()=>{
+  EM.addSystem("stickAndPoint",Phase.GAME_WORLD,[],[InputsDef],(_, {inputs})=>{
+
+
+    if(!mouseIsPressed && inputs.ldown){
+      mouseIsPressed = true;
+      InitJump();
+    }
+    else if(mouseIsPressed){
+      if(inputs.ldown){
+        DragJump();
+      }
+      else ReleaseJump();
+    }
 
     //update points and add gravity:
-    
-
-
     for(let point of bodyPoints){
       // if (point.position===point.prevPosition){
       //   point.prevPosition = V3.copy(point.prevPosition, V3.add(point.prevPosition,V(-10,10,-10)));
       // }
       if(point.fixed){
-        if(waitCount>0){
-          waitCount--;
-        }
-        else if(fixedMoveCount>0){
+        if(jump){
           fixedMoveUpdate(point);
-          fixedMoveCount--;
+          escapeCurrentHoldCount--;
+          if(escapeCurrentHoldCount<0 && checkForHoldColision()){
+            catchHold();
+            escapeCurrentHoldCount = 20;
+          }
         }
-        else if (fixedMoveCount<=0 && fixedMoveCount>-5) fixedMoveCount--;
-        
-        // else if(fixedMoveCount===0){
-        //   fixedMoveCount--;
-        //   point.fixed = false;
-        //   rh.fixed = true;
-        // }
-      //   if(point.position===point.prevPosition){
-      //     V3.add(point.position, V(10,-10,10),point.position);
-      //     point.fixed = false;
-      //     continue;
-      //   }
-      //   else point.fixed = false;
         continue;
       }
+      // if(point.fixed){
+      //   if(waitCount>0){
+      //     waitCount--;
+      //   }
+      //   else if(fixedMoveCount>0){
+      //     fixedMoveUpdate(point);
+      //     fixedMoveCount--;
+      //   }
+      //   else if (fixedMoveCount<=0 && fixedMoveCount>-5) fixedMoveCount--;
+        
+      //   // else if(fixedMoveCount===0){
+      //   //   fixedMoveCount--;
+      //   //   point.fixed = false;
+      //   //   rh.fixed = true;
+      //   // }
+      // //   if(point.position===point.prevPosition){
+      // //     V3.add(point.position, V(10,-10,10),point.position);
+      // //     point.fixed = false;
+      // //     continue;
+      // //   }
+      // //   else point.fixed = false;
+      //   continue;
+      // }
       else{
         const nextPrevPosition = V3.clone(point.position);
         V3.add(V3.sub(point.position,point.prevPosition),point.position, point.position);
@@ -368,33 +390,33 @@ export async function initJoelGame() {
       // point.position = pos;
     }
     
-    // function InitJump(){
-    //   mouseIsPressed = true;
-    //   mouseStart[0] = ;
-    //   mouseStart[1] = ;
-    //   jumpHand.position = V3.clone(holdHand.position);
-    //   // jumpHand.fixed = true;
-    // }
-    // function DragJump(){
-    //   //
-    //   mousePosition[0] = ;
-    //   mousePosition[1] = ;
-    //   jumpHand.position[0]+= mousePosition[0]-mouseStart[0];
-    //   jumpHand.position[2]+= mousePosition[1]-mouseStart[1];
-      
-    // }
-    // function ReleaseJump(){
-    //   mousePosition[0] = ;
-    //   mousePosition[1] = ;
-    //   moveAmt[0] = (mouseStart[0] - mousePosition[0]) * JUMP_SCALE;
-    //   moveAmt[2] = (mouseStart[1] - mousePosition[1]) * JUMP_SCALE;
-    //   jump = true;
-    //   jumpHand.fixed = true;
-    //   holdHand.fixed = false;
-    // }
-    // function catchHold(){
-
-    // }
+    function InitJump(){
+      inputs.ldown
+      mouseIsPressed = true;
+      mouseStart = inputs.mousePos;
+      jumpHand.position = V3.clone(holdHand.position);
+      // jumpHand.fixed = true;
+    }
+    function DragJump(){
+      //
+      mousePosition = inputs.mousePos;
+      jumpHand.position[0]+= mousePosition[0]-mouseStart[0];
+      jumpHand.position[2]+= mousePosition[1]-mouseStart[1];
+    }
+    function ReleaseJump(){
+      mousePosition = inputs.mousePos;
+      moveAmt[0] = (mouseStart[0] - mousePosition[0]) * JUMP_SCALE;
+      moveAmt[2] = (mouseStart[1] - mousePosition[1]) * JUMP_SCALE;
+      jump = true;
+      jumpHand.fixed = true;
+      holdHand.fixed = false;
+    }
+    function catchHold(){
+      jump = false;
+    }
+    function checkForHoldColision(): boolean{
+      return false;
+    }
 
     //adjust points to reconcile stick lengths:
     // if (false)
