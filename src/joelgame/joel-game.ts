@@ -141,6 +141,9 @@ export async function initJoelGame() {
   
   const wallHeight = 20;
   const wallWidth = 10;
+  const CLUSTER_VERT_OFFSET = 3;
+  const CLUSTER_VERT_VAR = 5;
+  const CLUSTER_SIZE = 4;
   
 
   //build wall
@@ -149,26 +152,65 @@ export async function initJoelGame() {
   EM.set(wall, ColorDef, ENDESGA16.darkBrown);
   EM.set(wall, PositionDef, V(0, 1.5, 10));
   EM.set(wall,RotationDef, quat.fromYawPitchRoll(0,Math.PI*.1,0));
+
+  //generate cluster locations:
+  const clusters = generateClusters();
+  function generateClusters(): V3[]{
+    let clusters: V3[] = [];
+    let hor = Math.random()* (wallWidth-3) - (wallWidth-3)/2;
+    let vert = 3;
+    let dep = (vert-(wallHeight/2));
+    clusters.push(V(hor, dep, vert));
+    while(clusters[clusters.length-1][2] < wallHeight - 4){
+      hor = Math.random()* (wallWidth-3) - (wallWidth-3)/2;
+      vert = Math.random()* CLUSTER_VERT_VAR + clusters[clusters.length-1][2] + CLUSTER_VERT_OFFSET;
+      dep = (vert-(wallHeight/2))*-.33;
+      clusters.push(V(hor, dep, vert));
+    }
+    return clusters;
+  }
+
   
+    
   //generate holds
-  const holds = [];
-  for(let i=0;i<11;i++){
-    const hold = EM.mk();
-    EM.set(hold, RenderableConstructDef, TetraMesh);
-    EM.set(hold, ColorDef, ENDESGA16.red);
-    const hor = Math.random()* (wallWidth-3) - (wallWidth-3)/2;
-    const vert = Math.random()*(wallHeight-4)+2;
-    const dep = (vert-(wallHeight/2))*-.33;
-    EM.set(hold, PositionDef, V(hor, dep ,vert));
-    // EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, 0, Math.random() * 3));
+  type Hold = EntityW<[typeof PositionDef]>;
+  const holds = generateHolds();
+  function generateHolds():Hold[]{
+    const holds: Hold[] = [];
+    for(const cluster of clusters){
+      do{
+        const hold = EM.mk();
+        EM.set(hold, RenderableConstructDef, TetraMesh);
+        EM.set(hold, ColorDef, ENDESGA16.red);
+        const hor = Math.random()* CLUSTER_SIZE + cluster[0] - CLUSTER_SIZE / 2;
+        const vert = Math.random()* CLUSTER_SIZE + cluster[2] - CLUSTER_SIZE / 2;
+        const dep = (vert-(wallHeight/2)) * -.33;
+        EM.set(hold, PositionDef, V(hor, dep ,vert));
+        EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, Math.PI*.6, 0));
+        quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
+        EM.set(hold, ScaleDef, V(Math.random()+.5,Math.random()+.5,Math.random()+.5))
+        holds.push(hold)
+      }while(Math.random() <.6);
+    }
+    return holds;
+  }
+  // for(let i=0;i<11;i++){
+  //   const hold = EM.mk();
+  //   EM.set(hold, RenderableConstructDef, TetraMesh);
+  //   EM.set(hold, ColorDef, ENDESGA16.red);
+  //   const hor = Math.random()* (wallWidth-3) - (wallWidth-3)/2;
+  //   const vert = Math.random()*(wallHeight-4)+2;
+  //   const dep = (vert-(wallHeight/2))*-.33;
+  //   EM.set(hold, PositionDef, V(hor, dep ,vert));
+  //   // EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, 0, Math.random() * 3));
     
 
-    EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, Math.PI*.6, 0));
-    quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
-    // EM.set(hold,RotationDef, quat.fromYawPitchRoll(Math.random()-.5,Math.PI*.6,Math.random()-.5));
-    EM.set(hold, ScaleDef, V(Math.random()+.5,Math.random()+.5,Math.random()+.5))
-    holds.push(hold)
-  }
+  //   EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, Math.PI*.6, 0));
+  //   quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
+  //   // EM.set(hold,RotationDef, quat.fromYawPitchRoll(Math.random()-.5,Math.PI*.6,Math.random()-.5));
+  //   EM.set(hold, ScaleDef, V(Math.random()+.5,Math.random()+.5,Math.random()+.5))
+  //   holds.push(hold)
+  // }
 
   //generate guy
 
