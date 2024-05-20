@@ -295,11 +295,18 @@ export async function initJoelGame() {
   let rHip = mkGCPoint(V(-3.4,0,2.7), .2, false);
   bodyPoints.push(rHip);
   //left foot
-  let lf = mkGCPoint(V(-4,0,1.4), .2, false);
+  let lf = mkGCPoint(V(-4,0,1.3), .2, false);
   bodyPoints.push(lf);
   //right foot
-  let rf = mkGCPoint(V(-3.4,0,1.4), .2, false);
+  let rf = mkGCPoint(V(-3.4,0,1.3), .2, false);
   bodyPoints.push(rf);
+  //right knee
+  let rk = mkGCPoint(V(-3.4,0,2), .05, false);
+  bodyPoints.push(rk);
+  // left knee
+  let lk = mkGCPoint(V(-4,0,2), .05, false);
+  bodyPoints.push(lk);
+
   
 
   //sticks connecting points: pointA, pointB, length
@@ -324,8 +331,12 @@ export async function initJoelGame() {
     mkStick(pelvis,rHip),
     mkStick(pelvis,lHip),
     mkStick(rHip,lHip),
-    mkStick(rHip,rf),
-    mkStick(lHip,lf),
+    // mkStick(rHip,rf),
+    // mkStick(lHip,lf),
+    mkStick(rHip,rk),
+    mkStick(rk,rf),
+    mkStick(lHip,lk),
+    mkStick(lk,lf),
     mkStick(head,pelvis)
   ];
 
