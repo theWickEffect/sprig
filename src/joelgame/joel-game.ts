@@ -214,7 +214,7 @@ export async function initJoelGame() {
 
   //generate guy
 
-  const GUY_SCALE = .5
+  const GUY_SCALE = .75;
   const GUY_LH_ZERO = V(4.2,0,-5);
   let GUY_LH_START = V(holds[0].position[0], holds[0].position[1] - 2, holds[0].position[2])
   // GUY_LH_START[1] -= 3;
@@ -289,16 +289,16 @@ export async function initJoelGame() {
   let pelvis = mkGCPoint(V(-3.7,0,2.8), .2, false);
   bodyPoints.push(pelvis);
   //left hip
-  let lHip = mkGCPoint(V(-4,0,2.8), .2, false);
+  let lHip = mkGCPoint(V(-4,0,2.7), .2, false);
   bodyPoints.push(lHip);
   //right hip
-  let rHip = mkGCPoint(V(-3.4,0,2.8), .2, false);
+  let rHip = mkGCPoint(V(-3.4,0,2.7), .2, false);
   bodyPoints.push(rHip);
   //left foot
-  let lf = mkGCPoint(V(-4,0,1.2), .2, false);
+  let lf = mkGCPoint(V(-4,0,1.4), .2, false);
   bodyPoints.push(lf);
   //right foot
-  let rf = mkGCPoint(V(-3.4,0,1.2), .2, false);
+  let rf = mkGCPoint(V(-3.4,0,1.4), .2, false);
   bodyPoints.push(rf);
   
 
