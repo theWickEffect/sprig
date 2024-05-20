@@ -289,13 +289,13 @@ export async function initJoelGame() {
   let mouseIsPressed = false;
   let mouseStart = V(0,0);
   let mousePosition = V(0,0);
-  // let rHandHold = false;
   let holdHand = lh;
   let jumpHand = rh;
   const JUMP_SCALE = .004;
   let jump = false;
   let escapeCurrentHoldCount = 20;
-  const JUMP_OUT_SCALE = -.1;
+  const JUMP_OUT_SCALE = -.13;
+  const ARM_STRETCH_SCALE = .02;
 
   function getRandomInt(min:number, max:number):number {
     const minCeiled = Math.ceil(min);
@@ -404,8 +404,8 @@ export async function initJoelGame() {
     function DragJump(){
       //
       mousePosition = inputs.mousePos;
-      jumpHand.position[0]+= mousePosition[0]-mouseStart[0];
-      jumpHand.position[2]+= mouseStart[1] - mousePosition[1];
+      jumpHand.position[0]+= (mousePosition[0]-mouseStart[0]) * ARM_STRETCH_SCALE;
+      jumpHand.position[2]+= (mouseStart[1] - mousePosition[1]) * ARM_STRETCH_SCALE;
     }
     function ReleaseJump(){
       mousePosition = inputs.mousePos;
