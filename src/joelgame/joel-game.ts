@@ -139,8 +139,8 @@ export async function initJoelGame() {
     aabb: HEX_AABB,
   });
   
-  const wallHeight = 20;
-  const wallWidth = 10;
+  const wallHeight = 40;
+  const wallWidth = 20;
   const CLUSTER_VERT_OFFSET = 3;
   const CLUSTER_VERT_VAR = 5;
   const CLUSTER_SIZE = 4;
@@ -150,7 +150,7 @@ export async function initJoelGame() {
   const wall = EM.mk();
   EM.set(wall, RenderableConstructDef, mkRectMesh(wallWidth,3,wallHeight));
   EM.set(wall, ColorDef, ENDESGA16.darkBrown);
-  EM.set(wall, PositionDef, V(0, 1.5, 10));
+  EM.set(wall, PositionDef, V(0, 1.5, wallHeight / 2));
   EM.set(wall,RotationDef, quat.fromYawPitchRoll(0,Math.PI*.1,0));
 
   //generate cluster locations:
@@ -158,11 +158,11 @@ export async function initJoelGame() {
   function generateClusters(): V3[]{
     let clusters: V3[] = [];
     let hor = Math.random()* (wallWidth-3) - (wallWidth-3)/2;
-    let vert = 3;
+    let vert = 5;
     let dep = (vert-(wallHeight/2));
     clusters.push(V(hor, dep, vert));
-    while(clusters[clusters.length-1][2] < wallHeight - 4){
-      hor = Math.random()* (wallWidth-3) - (wallWidth-3)/2;
+    while(clusters[clusters.length-1][2] < wallHeight - 10){
+      hor = Math.random()* (wallWidth-5) - (wallWidth-5)/2;
       vert = Math.random()* CLUSTER_VERT_VAR + clusters[clusters.length-1][2] + CLUSTER_VERT_OFFSET;
       dep = (vert-(wallHeight/2))*-.33;
       clusters.push(V(hor, dep, vert));
