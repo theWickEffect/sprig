@@ -216,7 +216,8 @@ export async function initJoelGame() {
 
   const GUY_SCALE = .5
   const GUY_LH_ZERO = V(4.2,0,-5);
-  const GUY_LH_START = holds[0].position
+  let GUY_LH_START = V(holds[0].position[0], holds[0].position[1] - 2, holds[0].position[2])
+  // GUY_LH_START[1] -= 3;
   const GUY_OFFSET = J3.add(GUY_LH_START,GUY_LH_ZERO);
   
   function mkEntity(mesh: Mesh, position: V3, scale: number, color: V3 ):EntityW<[typeof PositionDef]>{
@@ -305,7 +306,7 @@ export async function initJoelGame() {
   type Stick = {pointA: Point, pointB: Point, length: number}
   
   function mkStick(pointA: Point, pointB: Point): Stick{
-    return {pointA, pointB, length:V3.dist(lh.position,ls.position)};
+    return {pointA, pointB, length:V3.dist(pointA.position,pointB.position)};
   }
 
   let sticks: Stick[] = [
@@ -324,7 +325,8 @@ export async function initJoelGame() {
     mkStick(pelvis,lHip),
     mkStick(rHip,lHip),
     mkStick(rHip,rf),
-    mkStick(lHip,lf)
+    mkStick(lHip,lf),
+    mkStick(head,pelvis)
   ];
 
 
@@ -343,6 +345,8 @@ export async function initJoelGame() {
   let escapeCurrentHoldCount = 20;
   const JUMP_OUT_SCALE = -.13;
   const ARM_STRETCH_SCALE = .02;
+  // const GUY_START = holds[0].position;
+  let started: boolean = false;
 
   function getRandomInt(min:number, max:number):number {
     const minCeiled = Math.ceil(min);
@@ -363,10 +367,31 @@ export async function initJoelGame() {
     return arr;
   }
 
-  
+  function startGame(){
+    jumpHand.fixed = false;
+      holdHand.fixed = true;
+      jump = false;
+      holdHand.position = V3.clone(GUY_LH_START);
+      holdHand.prevPosition= lh.position;
+  }
   //update points and sticks each frame:
   EM.addSystem("stickAndPoint",Phase.GAME_WORLD,[],[InputsDef],(_, {inputs})=>{
 
+    if(!started){
+      started = true;
+      startGame();
+    } 
+
+    //Reset:
+    //to do: add game over check
+    if(inputs.keyClicks['m']){
+      startGame();
+      jumpHand.fixed = false;
+      holdHand.fixed = true;
+      jump = false;
+      holdHand.position = V3.clone(GUY_LH_START);
+      holdHand.prevPosition= lh.position;
+    }
 
     if(!mouseIsPressed && inputs.ldown){
       mouseIsPressed = true;
@@ -465,6 +490,9 @@ export async function initJoelGame() {
     }
     function catchHold(){
       jump = false;
+      const temp = jumpHand;
+      jumpHand = holdHand;
+      holdHand = jumpHand;
     }
     function checkForHoldColision(): boolean{
       return false;
@@ -539,7 +567,7 @@ export async function initJoelGame() {
 
 
   // gizmo
-  addWorldGizmo(V(0, 0, 0), 5);
+  addWorldGizmo(V(-20, 0, 0), 5);
 
 
   // line test
