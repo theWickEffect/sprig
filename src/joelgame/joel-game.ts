@@ -160,7 +160,12 @@ export async function initJoelGame() {
     const vert = Math.random()*(wallHeight-4)+2;
     const dep = (vert-(wallHeight/2))*-.33;
     EM.set(hold, PositionDef, V(hor, dep ,vert));
-    EM.set(hold,RotationDef, quat.fromYawPitchRoll(Math.random()-.5,Math.PI*.6,Math.random()-.5));
+    // EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, 0, Math.random() * 3));
+    
+
+    EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, Math.PI*.6, 0));
+    quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
+    // EM.set(hold,RotationDef, quat.fromYawPitchRoll(Math.random()-.5,Math.PI*.6,Math.random()-.5));
     EM.set(hold, ScaleDef, V(Math.random()+.5,Math.random()+.5,Math.random()+.5))
     holds.push(hold)
   }
