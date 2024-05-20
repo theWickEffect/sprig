@@ -30,6 +30,7 @@ import { Phase } from "../ecs/sys-phase.js";
 import { Entity, EntityW } from "../ecs/em-entities.js";
 import { tmpStack } from "../matrix/sprig-matrix.js";
 import { InputsDef } from "../input/inputs.js";
+import { ld53ShipAABBs } from "../wood/shipyard";
 
 const DBG_GHOST = true;
 
@@ -194,6 +195,16 @@ export async function initJoelGame() {
     }
     return holds;
   }
+
+  //get hold catch points
+  const holdCatchPoints = getHoldCatchPoints();
+  function getHoldCatchPoints(): V3[]{
+    let catchPoints: V3[] = [];
+    for(const hold of holds){
+      catchPoints.push(V(hold.position[0], hold.position[1] - 2, hold.position[2]));
+    }
+    return catchPoints;
+  }
   // for(let i=0;i<11;i++){
   //   const hold = EM.mk();
   //   EM.set(hold, RenderableConstructDef, TetraMesh);
@@ -353,7 +364,8 @@ export async function initJoelGame() {
   let jumpHand = rh;
   const JUMP_SCALE = .004;
   let jump = false;
-  let escapeCurrentHoldCount = 20;
+  const ESCAPE_AMT = 10;
+  let escapeCurrentHoldCount = ESCAPE_AMT;
   const JUMP_OUT_SCALE = -.13;
   const ARM_STRETCH_SCALE = .02;
   // const GUY_START = holds[0].position;
@@ -427,9 +439,9 @@ export async function initJoelGame() {
         if(jump){
           fixedMoveUpdate(point);
           escapeCurrentHoldCount--;
-          if(escapeCurrentHoldCount<0 && checkForHoldColision()){
-            catchHold();
-            escapeCurrentHoldCount = 20;
+          if(escapeCurrentHoldCount<0){
+            checkForHoldColision();
+            
           }
         }
         continue;
@@ -506,7 +518,19 @@ export async function initJoelGame() {
       holdHand = jumpHand;
     }
     function checkForHoldColision(): boolean{
+      for(const catchPoint of holdCatchPoints){
+        if(V3.dist(jumpHand.position,catchPoint) < 1){
+          jumpHand.position = V3.clone(catchPoint);
+          jumpHand.prevPosition = jumpHand.position;
+          const temp = jumpHand;
+          jumpHand = holdHand;
+          holdHand = temp;
+          jump = false;
+          escapeCurrentHoldCount = ESCAPE_AMT;
+        }
+      }
       return false;
+
     }
 
     //adjust points to reconcile stick lengths:
