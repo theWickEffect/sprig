@@ -292,9 +292,10 @@ export async function initJoelGame() {
   // let rHandHold = false;
   let holdHand = lh;
   let jumpHand = rh;
-  const JUMP_SCALE = .01;
+  const JUMP_SCALE = .004;
   let jump = false;
   let escapeCurrentHoldCount = 20;
+  const JUMP_OUT_SCALE = -.1;
 
   function getRandomInt(min:number, max:number):number {
     const minCeiled = Math.ceil(min);
@@ -328,7 +329,10 @@ export async function initJoelGame() {
       if(inputs.ldown){
         DragJump();
       }
-      else ReleaseJump();
+      else {
+        ReleaseJump();
+        mouseIsPressed = false;
+      }
     }
 
     //update points and add gravity:
@@ -401,12 +405,13 @@ export async function initJoelGame() {
       //
       mousePosition = inputs.mousePos;
       jumpHand.position[0]+= mousePosition[0]-mouseStart[0];
-      jumpHand.position[2]+= mousePosition[1]-mouseStart[1];
+      jumpHand.position[2]+= mouseStart[1] - mousePosition[1];
     }
     function ReleaseJump(){
       mousePosition = inputs.mousePos;
       moveAmt[0] = (mouseStart[0] - mousePosition[0]) * JUMP_SCALE;
-      moveAmt[2] = (mouseStart[1] - mousePosition[1]) * JUMP_SCALE;
+      moveAmt[2] = (mousePosition[1] - mouseStart[1]) * JUMP_SCALE;
+      moveAmt[1] = moveAmt[2] * JUMP_OUT_SCALE;
       jump = true;
       jumpHand.fixed = true;
       holdHand.fixed = false;
