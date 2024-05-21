@@ -268,7 +268,8 @@ export async function initJoelGame() {
     for(let y=0;y<=yNum;y++){
       waterArr.push([]);
       for(let x = 0; x <= xNum; x++){
-        waterArr[y].push(mkPoint(mkEntity(mkCubeMesh(),V(xStart + increment * x, yStart + increment * y, zPos),.1,ENDESGA16.lightBlue),false));
+        waterArr[y].push(mkPoint(mkEntity(mkCubeMesh(),V(xStart + increment * x, yStart + increment * y, zPos),2,ENDESGA16.lightBlue),false));
+        // if (x%5 === 0) waterArr[y][x].fixed = true;
       }
       waterArr[y][0].fixed = true;
       waterArr[y][xNum].fixed = true;
@@ -286,6 +287,38 @@ export async function initJoelGame() {
     }
     return sticks;
   }
+
+  function addSlack(points: Point[][], slackAmt: number){
+    slackAmt /= points[0].length
+    for(let y = 0; y < points.length; y++){
+      for(let x = 0; x < points[0].length; x++){
+        const point = points[y][x];
+        point.position[0] -= slackAmt * x;
+        point.prevPosition[0] -= slackAmt * x;
+        point.object.position[0] -= slackAmt * x;
+      }
+    }
+  }
+// to do: move lower to update variables
+  // function generateWave(waterArr: Point[][], sineMax: number, sineMin: number, sinePos: number, sineUp: boolean, sineRatio: number): number{
+  //   if(sineUp){
+  //     sinePos += (sineMax - sinePos) * sineRatio;
+  //     if(sinePos > sineMax - .01){
+  //       // to do: update external sineUp boolean
+  //       sineUp = true;
+  //     }
+  //   }
+  //   else{
+  //     sinePos -= (sinePos - sineMin) * sineRatio;
+  //     if(sinePos < sineMin + .01){
+  //       // to do: update external sineUp boolean
+  //       sineUp = true;
+  //     }
+  //   }
+    
+  //   for(let y = 0; y < waterArr.length; y++){}
+  //   return sinePos;
+  // }
 
   //stuff for refac:
   // const myData = {
@@ -381,9 +414,46 @@ export async function initJoelGame() {
     mkStick(head,pelvis)
   ];
 
+  interface Wave{
+    sinePos: number;
+    sineMax: number;
+    sineMin: number;
+    sineRatio: number;
+    sineUp: boolean;
+  }
+
+  interface Water {
+    points: Point[][];
+    sticks: Stick[];
+    wave: Wave;
+  }
+  const waterArr = mkWaterGrid(100,100,5,-50,-50,0);
+  const SINE_HEIGHT = 1;
+  // const wave = {
+  //   sinePos: waterArr[0][0].position[2],
+  //     sineMax: waterArr[0][0].position[2] + SINE_HEIGHT,
+  //     sineMin: waterArr[0][0].position[2] - SINE_HEIGHT,
+  //     sineRatio: .1,
+  //     sineUp: true
+  // }
+  const water: Water = {
+    points: waterArr,
+    sticks: mkWaterSticks(waterArr),
+    wave: {
+      sinePos: waterArr[0][0].position[2],
+      sineMax: waterArr[0][0].position[2] + SINE_HEIGHT,
+      sineMin: waterArr[0][0].position[2] - SINE_HEIGHT,
+      sineRatio: .05,
+      sineUp: true
+    }
+
+  } 
+
+  addSlack(water.points, 1);
 
   const GRAVITY = .008
   const STICK_ITTERATIONS = 20;
+  const WATER_STICK_ITTERATIONS = 10;
   let waitCount = 60;
   let fixedMoveCount = 65;
   let moveAmt = V(.006,-.1,.4);
@@ -404,6 +474,7 @@ export async function initJoelGame() {
   const CAMERA_OFFSET = V(0,-20,3);
   let cameraPosition = J3.add(CAMERA_OFFSET,GUY_LH_START);
   const CAMERA_SPEED = .01;
+
 
   function getRandomInt(min:number, max:number):number {
     const minCeiled = Math.ceil(min);
@@ -489,6 +560,44 @@ export async function initJoelGame() {
       }
     }
 
+    function generateWave(){
+      if(water.wave.sineUp){
+        water.wave.sinePos += (water.wave.sineMax - water.wave.sinePos) * water.wave.sineRatio;
+        if(water.wave.sinePos > water.wave.sineMax - .1){
+          // to do: update external sineUp boolean
+          water.wave.sineUp = false;
+        }
+      }
+      else{
+        water.wave.sinePos -= (water.wave.sinePos - water.wave.sineMin) * water.wave.sineRatio;
+        if(water.wave.sinePos < water.wave.sineMin + .1){
+          // to do: update external sineUp boolean
+          water.wave.sineUp = true;
+        }
+      }
+      for(let y = 0; y < water.points.length; y++){
+        water.points[y][0].position[2] = water.wave.sinePos;
+      }
+    }
+
+    generateWave();
+    
+    for(let i=0; i<water.points.length; i++){
+      for(let j=0; j<water.points[0].length; j++){
+        const point = water.points[i][j];
+        if(point.fixed){
+          continue
+        }
+        else{
+          const nextPrevPosition = V3.clone(point.position);
+          V3.add(V3.sub(point.position,point.prevPosition,point.prevPosition),point.position, point.position);
+          // point.position[2] -= GRAVITY;
+          // V3.add(V(0,0,GRAVITY),point.position, point.position)
+          V3.copy(point.prevPosition, nextPrevPosition);
+
+        }
+      }
+    }
     //update points and add gravity:
     for(let point of bodyPoints){
 
@@ -604,33 +713,44 @@ export async function initJoelGame() {
     //adjust points to reconcile stick lengths:
     // if (false)
     // const _stk = tmpStack();
-    for(let i = 0; i<STICK_ITTERATIONS;i++){
-      const randArr = randomOrderArray(sticks.length);
-      for(let j=0;j<sticks.length;j++){
-        let stick = sticks[randArr[j]];
-        // V3.mid()
-        let stickCenter = J3.scale(J3.add(stick.pointA.position, stick.pointB.position,true),.5,false);
-        const stickDir = J3.norm(J3.sub(stick.pointA.position, stick.pointB.position,true));
-        J3.scale(stickDir, stick.length/2, false);
-        if(!stick.pointA.fixed){
-          stick.pointA.position = J3.add(stickCenter,stickDir,true);
-          // V3.copy(stick.pointA.position, V3.add(stickCenter,V3.scale(stickDir,stick.length/2)));
+    updateSticks(sticks,STICK_ITTERATIONS);
+    updateSticks(water.sticks, WATER_STICK_ITTERATIONS);
+    function updateSticks(sticks: Stick[], itterations: number){
+      for(let i = 0; i<itterations;i++){
+        const randArr = randomOrderArray(sticks.length);
+        for(let j=0;j<sticks.length;j++){
+          let stick = sticks[randArr[j]];
+          // V3.mid()
+          let stickCenter = J3.scale(J3.add(stick.pointA.position, stick.pointB.position,true),.5,false);
+          const stickDir = J3.norm(J3.sub(stick.pointA.position, stick.pointB.position,true));
+          J3.scale(stickDir, stick.length/2, false);
+          if(!stick.pointA.fixed){
+            stick.pointA.position = J3.add(stickCenter,stickDir,true);
+            // V3.copy(stick.pointA.position, V3.add(stickCenter,V3.scale(stickDir,stick.length/2)));
+          }
+          // else V3.copy(stickCenter, V3.add(stick.pointA.position,V3.scale(stickDir,stick.length/2)));
+          if(!stick.pointB.fixed){
+            stick.pointB.position = J3.sub(stickCenter,stickDir,false);
+            // V3.copy(stick.pointB.position, V3.sub(stickCenter,V3.scale(stickDir,stick.length/2)));
+          }
+          // else V3.copy(stick.pointA.position, V3.add(stick.pointA.position,V3.scale(stickDir,stick.length/2)));
         }
-        // else V3.copy(stickCenter, V3.add(stick.pointA.position,V3.scale(stickDir,stick.length/2)));
-        if(!stick.pointB.fixed){
-          stick.pointB.position = J3.sub(stickCenter,stickDir,false);
-          // V3.copy(stick.pointB.position, V3.sub(stickCenter,V3.scale(stickDir,stick.length/2)));
-        }
-        // else V3.copy(stick.pointA.position, V3.add(stick.pointA.position,V3.scale(stickDir,stick.length/2)));
+        // to do: shuffle sticks array
+        // _stk.popAndRemark();
       }
-      // to do: shuffle sticks array
-      // _stk.popAndRemark();
     }
     // _stk.pop();
 
     // set object locations to their calculated locatoins:
     for(let point of bodyPoints){
       EM.set(point.object,PositionDef,point.position);
+    }
+    for(let i=0;i<water.points.length;i++){
+      for(let j=0; j<water.points[0].length; j++){
+        water.points[i][j].object.position[0] = water.points[i][j].position[0];
+        water.points[i][j].object.position[1] = water.points[i][j].position[1];
+        water.points[i][j].object.position[2] = water.points[i][j].position[2];
+      }
     }
 
     if(fixedMoveCount === -5){
