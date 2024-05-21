@@ -76,7 +76,23 @@ export module J3{
 
     return vOut;
   }
-  
+  export function clone(v: V3):V3{
+    return V(v[0],v[1],v[2]);
+  }
+  export function dist(vA: V3, vB: V3): number{
+    const x = vA[0] - vB[0];
+    const y = vA[1] - vB[1];
+    const z = vA[2] - vB[2];
+    return Math.sqrt(x*x + y*y + z*z);
+  }
+  export function copy(to: V3, from: V3){
+    to[0] = from[0];
+    to[1] = from[1];
+    to[2] = from[2];
+  }
+  export function len(v: V3): number{
+    return Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+  }
 }
 
 
@@ -253,12 +269,11 @@ export async function initJoelGame() {
     return mkEntity(mkCubeMesh(), J3.scale(position, GUY_SCALE, false), scale * GUY_SCALE, ENDESGA16.darkGray);
   }
 
-  
   type Point = {position: V3, prevPosition: V3, fixed: boolean, object: EntityW<[typeof PositionDef]>};
 
   function mkPoint(e: EntityW<[typeof PositionDef]>, fixed: boolean): Point {
-    return {position: V3.clone(e.position), 
-    prevPosition: V3.clone(e.position),
+    return {position: J3.clone(e.position), 
+    prevPosition: J3.clone(e.position),
     object: e, fixed: fixed};
   }
 
@@ -396,7 +411,7 @@ export async function initJoelGame() {
   type Stick = {pointA: Point, pointB: Point, length: number}
   
   function mkStick(pointA: Point, pointB: Point): Stick{
-    return {pointA, pointB, length:V3.dist(pointA.position,pointB.position)};
+    return {pointA, pointB, length:J3.dist(pointA.position,pointB.position)};
   }
 
   let sticks: Stick[] = [
@@ -524,7 +539,7 @@ export async function initJoelGame() {
     jumpHand.fixed = false;
       holdHand.fixed = true;
       jump = false;
-      holdHand.position = V3.clone(GUY_LH_START);
+      holdHand.position = J3.clone(GUY_LH_START);
       holdHand.prevPosition= lh.position;
   }
   //update points and sticks each frame:
@@ -539,8 +554,8 @@ export async function initJoelGame() {
     //calculate change to camera position
     const camTargetPos = J3.add(holdHand.position,CAMERA_OFFSET);
     let camMovement = J3.sub(camTargetPos, cameraPosition);
-    if(Math.abs(V3.len(camMovement)) > 1){
-      V3.copy(cam.position,J3.add(cameraPosition,J3.scale(camMovement,CAMERA_SPEED,false),false));
+    if(Math.abs(J3.len(camMovement)) > 1){
+      J3.copy(cam.position,J3.add(cameraPosition,J3.scale(camMovement,CAMERA_SPEED,false),false));
     }
 
 
@@ -551,7 +566,7 @@ export async function initJoelGame() {
       jumpHand.fixed = false;
       holdHand.fixed = true;
       jump = false;
-      holdHand.position = V3.clone(GUY_LH_START);
+      holdHand.position = J3.clone(GUY_LH_START);
       holdHand.prevPosition= lh.position;
     }
 
@@ -599,11 +614,12 @@ export async function initJoelGame() {
           continue
         }
         else{
-          const nextPrevPosition = V3.clone(point.position);
+          const nextPrevPosition = J3.clone(point.position);
           V3.add(V3.sub(point.position,point.prevPosition,point.prevPosition),point.position, point.position);
           // point.position[2] -= GRAVITY;
           // V3.add(V(0,0,GRAVITY),point.position, point.position)
-          V3.copy(point.prevPosition, nextPrevPosition);
+          // J3.copy(point.prevPosition, nextPrevPosition);
+          point.prevPosition = nextPrevPosition;
 
         }
       }
@@ -650,11 +666,12 @@ export async function initJoelGame() {
       //   continue;
       // }
       else{
-        const nextPrevPosition = V3.clone(point.position);
+        const nextPrevPosition = J3.clone(point.position);
         V3.add(V3.sub(point.position,point.prevPosition),point.position, point.position);
         point.position[2] -= GRAVITY;
         // V3.add(V(0,0,GRAVITY),point.position, point.position)
-        V3.copy(point.prevPosition, nextPrevPosition);
+        // V3.copy(point.prevPosition, nextPrevPosition);
+        point.prevPosition = nextPrevPosition;
       }
     }
 
@@ -711,8 +728,9 @@ export async function initJoelGame() {
     // }
     function checkForHoldColision(): boolean{
       for(const catchPoint of holdCatchPoints){
-        if(V3.dist(jumpHand.position,catchPoint) < CATCH_ACURACY){
-          jumpHand.position = V3.clone(catchPoint);
+        if(J3.dist(jumpHand.position,catchPoint) < CATCH_ACURACY){
+          J3.copy(jumpHand.position, catchPoint);
+          // jumpHand.position = V3.clone(catchPoint);
           jumpHand.prevPosition = jumpHand.position;
           const temp = jumpHand;
           jumpHand = holdHand;
@@ -824,7 +842,7 @@ export async function initJoelGame() {
   //calculate change to camera position
   const camTargetPos = J3.add(holdHand.position,CAMERA_OFFSET);
   let camMovement = J3.sub(camTargetPos, cameraPosition);
-  if(Math.abs(V3.len(camMovement)) > 1){
+  if(Math.abs(J3.len(camMovement)) > 1){
     J3.add(cameraPosition,J3.scale(camMovement,CAMERA_SPEED,false),false);
   }
   
