@@ -133,16 +133,16 @@ export async function initJoelGame() {
   );
 
   // pedestal
-  const pedestal = EM.mk();
-  EM.set(pedestal, RenderableConstructDef, HexMesh);
-  EM.set(pedestal, ColorDef, ENDESGA16.orange);
-  EM.set(pedestal, PositionDef, V(0, 0, -10));
-  EM.set(pedestal, ScaleDef, V(10, 10, 10));
-  EM.set(pedestal, ColliderDef, {
-    shape: "AABB",
-    solid: true,
-    aabb: HEX_AABB,
-  });
+  // const pedestal = EM.mk();
+  // EM.set(pedestal, RenderableConstructDef, HexMesh);
+  // EM.set(pedestal, ColorDef, ENDESGA16.orange);
+  // EM.set(pedestal, PositionDef, V(0, 0, -10));
+  // EM.set(pedestal, ScaleDef, V(10, 10, 10));
+  // EM.set(pedestal, ColliderDef, {
+  //   shape: "AABB",
+  //   solid: true,
+  //   aabb: HEX_AABB,
+  // });
   
   const wallHeight = 40;
   const wallWidth = 20;
@@ -436,7 +436,7 @@ export async function initJoelGame() {
     sticks: Stick[];
     wave: Wave;
   }
-  const waterArr = mkWaterGrid(100,100,5,-50,-50,0);
+  const waterArr = mkWaterGrid(100,100,5,-50,-50,-2);
   const SINE_HEIGHT = 1;
   // const wave = {
   //   sinePos: waterArr[0][0].position[2],
