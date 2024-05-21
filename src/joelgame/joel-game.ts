@@ -182,7 +182,8 @@ export async function initJoelGame() {
   const holds = generateHolds();
   function generateHolds():Hold[]{
     const holds: Hold[] = [];
-    for(const cluster of clusters){
+    for(let i=0; i<clusters.length; i++){
+      const cluster = clusters[i];
       do{
         const hold = EM.mk();
         EM.set(hold, RenderableConstructDef, TetraMesh);
@@ -195,6 +196,10 @@ export async function initJoelGame() {
         quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
         EM.set(hold, ScaleDef, V(Math.random()+.5,Math.random()+.5,Math.random()+.5))
         holds.push(hold)
+        if(i===clusters.length-1){
+          EM.set(hold, ColorDef, ENDESGA16.lightGreen);
+          break;
+        } 
       }while(Math.random() <.6);
     }
     return holds;
@@ -268,12 +273,16 @@ export async function initJoelGame() {
     for(let y=0;y<=yNum;y++){
       waterArr.push([]);
       for(let x = 0; x <= xNum; x++){
-        waterArr[y].push(mkPoint(mkEntity(mkCubeMesh(),V(xStart + increment * x, yStart + increment * y, zPos),2,ENDESGA16.lightBlue),false));
+        waterArr[y].push(mkPoint(mkEntity(mkCubeMesh(),V(xStart + increment * x, yStart + increment * y, zPos),2.5,ENDESGA16.lightBlue),false));
         // if (x%5 === 0) waterArr[y][x].fixed = true;
       }
       waterArr[y][0].fixed = true;
       waterArr[y][xNum].fixed = true;
     }
+    waterArr[0][0].fixed = true;
+    waterArr[0][xNum].fixed = true;
+    waterArr[yNum][0].fixed = true;
+    waterArr[yNum][xNum].fixed = true;
     return waterArr;
   }
 
@@ -443,13 +452,13 @@ export async function initJoelGame() {
       sinePos: waterArr[0][0].position[2],
       sineMax: waterArr[0][0].position[2] + SINE_HEIGHT,
       sineMin: waterArr[0][0].position[2] - SINE_HEIGHT,
-      sineRatio: .05,
+      sineRatio: .08,
       sineUp: true
     }
 
   } 
 
-  addSlack(water.points, 1);
+  addSlack(water.points, .1);
 
   const GRAVITY = .008
   const STICK_ITTERATIONS = 20;
@@ -575,9 +584,10 @@ export async function initJoelGame() {
           water.wave.sineUp = true;
         }
       }
-      for(let y = 0; y < water.points.length; y++){
-        water.points[y][0].position[2] = water.wave.sinePos;
-      }
+      water.points[0][0].position[2] = water.wave.sinePos;
+      // for(let y = 0; y < water.points.length; y++){
+      //   water.points[y][0].position[2] = water.wave.sinePos;
+      // }
     }
 
     generateWave();
@@ -668,7 +678,12 @@ export async function initJoelGame() {
       mousePosition[1] = 0;
       // mouseStart[0] = inputs.mousePos[0];
       // mouseStart[1] = inputs.mousePos[1];
-      jumpHand.position = V3.clone(holdHand.position);
+      holdHand.fixed = true;
+      jumpHand.position[0] = holdHand.position[0];
+      jumpHand.position[1] = holdHand.position[1];
+      jumpHand.position[2] = holdHand.position[2];
+      
+      // jumpHand.position = V3.clone(holdHand.position);
       // jumpHand.fixed = true;
     }
     function DragJump(){
