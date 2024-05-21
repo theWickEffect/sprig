@@ -1,9 +1,9 @@
-import { CameraDef } from "../camera/camera.js";
+import { CameraDef, CameraFollowDef, setCameraFollowPosition } from "../camera/camera.js";
 import { ColorDef } from "../color/color-ecs.js";
 import { ENDESGA16 } from "../color/palettes.js";
 import { ECS, EM } from "../ecs/ecs.js";
 import { V, V3, quat } from "../matrix/sprig-matrix.js";
-import { HexMesh, PlaneMesh, TetraMesh } from "../meshes/mesh-list.js";
+import { CubeMesh, HexMesh, PlaneMesh, TetraMesh } from "../meshes/mesh-list.js";
 import { HEX_AABB, makeSphere, mkCubeMesh, mkPointCloud, mkRectMesh } from "../meshes/primatives.js";
 import { MeDef } from "../net/components.js";
 import { ColliderDef } from "../physics/collider.js";
@@ -30,9 +30,12 @@ import { Phase } from "../ecs/sys-phase.js";
 import { Entity, EntityW } from "../ecs/em-entities.js";
 import { tmpStack } from "../matrix/sprig-matrix.js";
 import { InputsDef } from "../input/inputs.js";
-import { ld53ShipAABBs } from "../wood/shipyard";
+import { ld53ShipAABBs } from "../wood/shipyard.js";
+import { ControllableDef } from "../input/controllable.js";
+import { LinearVelocityDef } from "../motion/velocity.js";
 
-const DBG_GHOST = true;
+const DBG_GHOST = false;
+const DEBUG = false;
 
 export module J3{
   export function add(vA: V3, vB: V3, newVector: boolean = true): V3{
@@ -109,6 +112,7 @@ export async function initJoelGame() {
   camera.viewDist = 1000;
   V3.set(-200, -200, -200, camera.maxWorldAABB.min);
   V3.set(+200, +200, +200, camera.maxWorldAABB.max);
+  //camera.
 
   // sun
   createSun();
@@ -257,6 +261,32 @@ export async function initJoelGame() {
     return mkPoint(mkGrayCube(J3.add(position,GUY_OFFSET,false),scale),fixed);
   }
 
+  function mkWaterGrid(xWid: number, yDep: number, increment: number, yStart: number, xStart: number, zPos: number = 0): Point[][]{
+    const xNum = Math.floor(xWid/increment);
+    const yNum = Math.floor(yDep/increment);
+    const waterArr: Point[][] = [];
+    for(let y=0;y<=yNum;y++){
+      waterArr.push([]);
+      for(let x = 0; x <= xNum; x++){
+        waterArr[y].push(mkPoint(mkEntity(mkCubeMesh(),V(xStart + increment * x, yStart + increment * y, zPos),.1,ENDESGA16.lightBlue),false));
+      }
+      waterArr[y][0].fixed = true;
+      waterArr[y][xNum].fixed = true;
+    }
+    return waterArr;
+  }
+
+  function mkWaterSticks(waterArr: Point[][]): Stick[]{
+    const sticks: Stick[] = [];
+    for(let y=0; y<waterArr.length; y++){
+      for(let x=0; x<waterArr[0].length; x++){
+        if(y!==0) sticks.push(mkStick(waterArr[y][x],waterArr[y-1][x]));
+        if(x!==0) sticks.push(mkStick(waterArr[y][x],waterArr[y][x-1]));
+      }
+    }
+    return sticks;
+  }
+
   //stuff for refac:
   // const myData = {
   //   points: [
@@ -366,10 +396,14 @@ export async function initJoelGame() {
   let jump = false;
   const ESCAPE_AMT = 10;
   let escapeCurrentHoldCount = ESCAPE_AMT;
-  const JUMP_OUT_SCALE = -.13;
+  const JUMP_OUT_SCALE = -.15;
+  const CATCH_ACURACY = 1.75;
   const ARM_STRETCH_SCALE = .02;
   // const GUY_START = holds[0].position;
   let started: boolean = false;
+  const CAMERA_OFFSET = V(0,-20,3);
+  let cameraPosition = J3.add(CAMERA_OFFSET,GUY_LH_START);
+  const CAMERA_SPEED = .01;
 
   function getRandomInt(min:number, max:number):number {
     const minCeiled = Math.ceil(min);
@@ -389,6 +423,22 @@ export async function initJoelGame() {
     }
     return arr;
   }
+  // create camera
+  const cam = EM.mk();
+  EM.set(cam, PositionDef, cameraPosition);
+  // EM.set(cam, ControllableDef);
+  // cam.controllable.modes.canFall = false;
+  // cam.controllable.modes.canJump = false;
+  // g.controllable.modes.canYaw = true;
+  // g.controllable.modes.canPitch = true;
+  EM.set(cam, CameraFollowDef, 1);
+  // setCameraFollowPosition(cam, "firstPerson");
+  // EM.set(cam, PositionDef);
+  // EM.set(cam, RotationDef);
+  // quat.rotateY(cam.rotation, quat.IDENTITY, (-5 * Math.PI) / 8);
+  // quat.rotateX(cam.cameraFollow.rotationOffset, quat.IDENTITY, -Math.PI / 8);
+  // EM.set(cam, LinearVelocityDef);
+  EM.set(cam, RenderableConstructDef, CubeMesh, true);
 
   function startGame(){
     jumpHand.fixed = false;
@@ -400,10 +450,19 @@ export async function initJoelGame() {
   //update points and sticks each frame:
   EM.addSystem("stickAndPoint",Phase.GAME_WORLD,[],[InputsDef],(_, {inputs})=>{
 
+    //init game
     if(!started){
       started = true;
       startGame();
     } 
+
+    //calculate change to camera position
+    const camTargetPos = J3.add(holdHand.position,CAMERA_OFFSET);
+    let camMovement = J3.sub(camTargetPos, cameraPosition);
+    if(Math.abs(V3.len(camMovement)) > 1){
+      V3.copy(cam.position,J3.add(cameraPosition,J3.scale(camMovement,CAMERA_SPEED,false),false));
+    }
+
 
     //Reset:
     //to do: add game over check
@@ -432,6 +491,8 @@ export async function initJoelGame() {
 
     //update points and add gravity:
     for(let point of bodyPoints){
+
+      if(DEBUG) console.log(inputs.mouseMov);
       // if (point.position===point.prevPosition){
       //   point.prevPosition = V3.copy(point.prevPosition, V3.add(point.prevPosition,V(-10,10,-10)));
       // }
@@ -492,18 +553,25 @@ export async function initJoelGame() {
     function InitJump(){
       inputs.ldown
       mouseIsPressed = true;
-      mouseStart = inputs.mousePos;
+      mouseStart[0] = 0;
+      mouseStart[1] = 0;
+      mousePosition[0] = 0;
+      mousePosition[1] = 0;
+      // mouseStart[0] = inputs.mousePos[0];
+      // mouseStart[1] = inputs.mousePos[1];
       jumpHand.position = V3.clone(holdHand.position);
       // jumpHand.fixed = true;
     }
     function DragJump(){
       //
-      mousePosition = inputs.mousePos;
+      // mousePosition = inputs.mousePos;
+      mousePosition[0] += inputs.mouseMov[0];
+      mousePosition[1] += inputs.mouseMov[1];
       jumpHand.position[0]+= (mousePosition[0]-mouseStart[0]) * ARM_STRETCH_SCALE;
       jumpHand.position[2]+= (mouseStart[1] - mousePosition[1]) * ARM_STRETCH_SCALE;
     }
     function ReleaseJump(){
-      mousePosition = inputs.mousePos;
+      // mousePosition = inputs.mousePos;
       moveAmt[0] = (mouseStart[0] - mousePosition[0]) * JUMP_SCALE;
       moveAmt[2] = (mousePosition[1] - mouseStart[1]) * JUMP_SCALE;
       moveAmt[1] = moveAmt[2] * JUMP_OUT_SCALE;
@@ -511,15 +579,15 @@ export async function initJoelGame() {
       jumpHand.fixed = true;
       holdHand.fixed = false;
     }
-    function catchHold(){
-      jump = false;
-      const temp = jumpHand;
-      jumpHand = holdHand;
-      holdHand = jumpHand;
-    }
+    // function catchHold(){
+    //   jump = false;
+    //   const temp = jumpHand;
+    //   jumpHand = holdHand;
+    //   holdHand = jumpHand;
+    // }
     function checkForHoldColision(): boolean{
       for(const catchPoint of holdCatchPoints){
-        if(V3.dist(jumpHand.position,catchPoint) < 1){
+        if(V3.dist(jumpHand.position,catchPoint) < CATCH_ACURACY){
           jumpHand.position = V3.clone(catchPoint);
           jumpHand.prevPosition = jumpHand.position;
           const temp = jumpHand;
@@ -617,4 +685,15 @@ export async function initJoelGame() {
   if (DBG_GHOST) {
     initGhost();
   }
+
+  //calculate change to camera position
+  const camTargetPos = J3.add(holdHand.position,CAMERA_OFFSET);
+  let camMovement = J3.sub(camTargetPos, cameraPosition);
+  if(Math.abs(V3.len(camMovement)) > 1){
+    J3.add(cameraPosition,J3.scale(camMovement,CAMERA_SPEED,false),false);
+  }
+  
+  
+
+
 }
