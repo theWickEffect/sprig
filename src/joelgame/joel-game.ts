@@ -343,13 +343,24 @@ export async function initJoelGame() {
   type Point = {position: V3, prevPosition: V3, fixed: boolean, object?: EntityW<[typeof PositionDef]>};
 
   function mkPoint(e: EntityW<[typeof PositionDef]>, fixed: boolean): Point {
-    return {position: J3.clone(e.position), 
-    prevPosition: J3.clone(e.position),
-    object: e, fixed: fixed};
+    return {
+      position: J3.clone(e.position), 
+      prevPosition: J3.clone(e.position),
+      object: e, 
+      fixed: fixed
+    };
   }
 
   function mkGCPoint(position:V3, scale: number = .2, fixed: boolean = false): Point{
     return mkPoint(mkGrayCube(J3.add(position,GUY_OFFSET,false),scale),fixed);
+  }
+
+  function mkPointNoObject(position:V3, fixed: boolean = false): Point {
+    return {
+      position: J3.clone(position), 
+      prevPosition: position,
+      fixed: fixed
+    }
   }
 
   function mkWaterGrid(xWid: number, yDep: number, increment: number, yStart: number, xStart: number, zPos: number = 0): Point[][]{
@@ -359,11 +370,12 @@ export async function initJoelGame() {
     for(let y=0;y<=yNum;y++){
       waterArr.push([]);
       for(let x = 0; x <= xNum; x++){
-        waterArr[y].push(mkPoint(mkEntity(mkCubeMesh(),V(xStart + increment * x, yStart + increment * y, zPos),2.5,ENDESGA16.lightBlue),false));
+        waterArr[y].push(mkPointNoObject(V(xStart + increment * x, yStart + increment * y, zPos)));
+        // waterArr[y].push(mkPoint(mkEntity(mkCubeMesh(),V(xStart + increment * x, yStart + increment * y, zPos),2.5,ENDESGA16.lightBlue),false));
         // if (x%5 === 0) waterArr[y][x].fixed = true;
       }
-      waterArr[y][0].fixed = true;
-      waterArr[y][xNum].fixed = true;
+      // waterArr[y][0].fixed = true;
+      // waterArr[y][xNum].fixed = true;
     }
     waterArr[0][0].fixed = true;
     waterArr[0][xNum].fixed = true;
@@ -521,9 +533,18 @@ export async function initJoelGame() {
   interface Water {
     points: Point[][];
     sticks: Stick[];
+    object: Entity;
     wave: Wave;
   }
-  const waterArr = mkWaterGrid(100,100,5,-50,-50,-2);
+  
+  const WATER_WIDTH = 100;
+  const WATER_DEPTH = 100;
+  const WATER_HEIGHT = .5
+  const WATER_INCREMENT = 5; 
+
+  const waterArr = mkWaterGrid(WATER_WIDTH,WATER_DEPTH,WATER_INCREMENT,-1*(WATER_DEPTH/2),-1*(WATER_WIDTH/2),WATER_HEIGHT);
+  const WATER_X_POINTS = waterArr[0].length;
+
   const SINE_HEIGHT = 1;
   // const wave = {
   //   sinePos: waterArr[0][0].position[2],
@@ -532,9 +553,13 @@ export async function initJoelGame() {
   //     sineRatio: .1,
   //     sineUp: true
   // }
+
+  // const waterObject = EM.mk();
+  // EM.set(waterObject,)
   const water: Water = {
     points: waterArr,
     sticks: mkWaterSticks(waterArr),
+    object: mkEntity(mkWaterMesh(waterArr),V(0,0,0),1,ENDESGA16.lightBlue),
     wave: {
       sinePos: waterArr[0][0].position[2],
       sineMax: waterArr[0][0].position[2] + SINE_HEIGHT,
@@ -544,6 +569,43 @@ export async function initJoelGame() {
       point: waterArr[Math.floor(waterArr.length/2)+6][Math.floor(waterArr[0].length/2)]
     }
   } 
+
+  function mkWaterMesh(waterPoints: Point[][]): Mesh{
+    const verts: V3[] = [];
+    const ids: number[] = [];
+    let id = 0;
+    let tri: V3[] = [];
+    const colors: V3[] = []
+    let curPoint = 0;
+    for(let i=0; i<waterPoints.length; i++){
+      for(let j=0;j< waterPoints[0].length; j++){
+        verts.push(J3.clone(waterPoints[i][j].position));
+        if(i>0 && j>0){
+          tri.push(V(curPoint, curPoint - WATER_X_POINTS - 1, curPoint - WATER_X_POINTS));
+          ids.push(id);
+          id++;
+          colors.push(V(0,0,0));
+          tri.push(V(curPoint, curPoint - 1, curPoint - WATER_X_POINTS - 1))
+          ids.push(id);
+          id++;
+          colors.push(V(0,0,0));
+        }
+        curPoint++;
+      }
+    }
+    const mesh: Mesh = {
+      dbgName: "water",
+      pos: verts,
+      tri,
+      quad: [],
+      colors,
+      surfaceIds: ids,
+      usesProvoking: true
+    }
+    return mesh;
+  }
+
+  // const waterMesh = mkWaterMesh(waterArr);
 
   // addSlack(water.points, .1);
 
