@@ -20,7 +20,7 @@ import { stdMeshPipe } from "../render/pipelines/std-mesh.js";
 import { outlineRender } from "../render/pipelines/std-outline.js";
 import { postProcess } from "../render/pipelines/std-post.js";
 import { shadowPipelines } from "../render/pipelines/std-shadow.js";
-import { RendererDef, RenderableConstructDef } from "../render/renderer-ecs.js";
+import { RendererDef, RenderableConstructDef, RenderableDef } from "../render/renderer-ecs.js";
 import { sketch, sketchLine } from "../utils/sketch.js";
 import { addWorldGizmo } from "../utils/utils-game.js";
 import { createObj, defineObj } from "../ecs/em-objects.js";
@@ -170,6 +170,70 @@ export async function initJoelGame() {
   const CLUSTER_VERT_VAR = 5;
   const CLUSTER_SIZE = 4;
   
+  function mkTriMesh(va: V3, vb: V3, vc: V3): Mesh{
+    let result: Mesh = {
+      dbgName: "flatTri",
+      pos: [va,vb,vc],
+      tri:[
+        V(0,1,2)
+      ],
+      quad: [],
+      colors: [ENDESGA16.lightBlue],
+      surfaceIds: [1],
+      usesProvoking: true
+    }
+    return result;
+  }
+
+  function mkRectMesh(xLen: number, yLen: number, zLen: number): Mesh {
+    let hx = xLen / 2;
+    let hy = yLen / 2;
+    let hz = zLen / 2;
+  
+    let result: Mesh = {
+      dbgName: "rect",
+      pos: [
+        V(+hx, +hy, +hz),
+        V(-hx, +hy, +hz),
+        V(-hx, -hy, +hz),
+        V(+hx, -hy, +hz),
+  
+        V(+hx, +hy, -hz),
+        V(-hx, +hy, -hz),
+        V(-hx, -hy, -hz),
+        V(+hx, -hy, -hz),
+      ],
+      tri: [],
+      quad: [
+        // +Z
+        V(0, 1, 2, 3),
+        // +Y
+        V(4, 5, 1, 0),
+        // +X
+        V(3, 7, 4, 0),
+        // -X
+        V(2, 1, 5, 6),
+        // -Y
+        V(6, 7, 3, 2),
+        // -Z
+        V(5, 4, 7, 6),
+      ],
+      colors: [
+        V(0, 0, 0),
+        V(0, 0, 0),
+        V(0, 0, 0),
+        V(0, 0, 0),
+        V(0, 0, 0),
+        V(0, 0, 0),
+      ],
+      surfaceIds: [1, 2, 3, 4, 5, 6],
+      usesProvoking: true,
+    };
+  
+    return result;
+  }
+  
+
 
   //build wall
   const wall = EM.mk();
@@ -177,6 +241,9 @@ export async function initJoelGame() {
   EM.set(wall, ColorDef, ENDESGA16.darkBrown);
   EM.set(wall, PositionDef, V(0, 1.5, wallHeight / 2));
   EM.set(wall,RotationDef, quat.fromYawPitchRoll(0,Math.PI*.1,0));
+
+  // const wall2 = await EM.whenEntityHas(wall, RenderableDef);
+  // wall2.renderable.meshHandle.pool.updateMeshVertices();
 
   //generate cluster locations:
   const clusters = generateClusters();
@@ -273,7 +340,7 @@ export async function initJoelGame() {
     return mkEntity(mkCubeMesh(), J3.scale(position, GUY_SCALE, false), scale * GUY_SCALE, ENDESGA16.darkGray);
   }
 
-  type Point = {position: V3, prevPosition: V3, fixed: boolean, object: EntityW<[typeof PositionDef]>};
+  type Point = {position: V3, prevPosition: V3, fixed: boolean, object?: EntityW<[typeof PositionDef]>};
 
   function mkPoint(e: EntityW<[typeof PositionDef]>, fixed: boolean): Point {
     return {position: J3.clone(e.position), 
@@ -323,7 +390,7 @@ export async function initJoelGame() {
         const point = points[y][x];
         point.position[0] -= slackAmt * x;
         point.prevPosition[0] -= slackAmt * x;
-        point.object.position[0] -= slackAmt * x;
+        // point.object.position[0] -= slackAmt * x;
       }
     }
   }
@@ -695,9 +762,11 @@ export async function initJoelGame() {
     //test:
     function fixedMoveUpdate(point: Point){
       // let pos = V3.clone(V3.add(point.position,moveAmt,point.position))
-      let pos = J3.add(point.position,moveAmt,false);
-      EM.set(point.object,PositionDef,pos);
-      point.prevPosition = pos;
+      // let pos = J3.add(point.position,moveAmt,false);
+      J3.add(point.position,moveAmt,false);
+      // EM.set(point.object,PositionDef,pos);
+      J3.copy(point.prevPosition,point.position);
+      // point.prevPosition = pos;
       moveAmt[2]-=GRAVITY;
       // point.position = pos;
     }
@@ -793,13 +862,20 @@ export async function initJoelGame() {
 
     // set object locations to their calculated locatoins:
     for(let point of bodyPoints){
-      EM.set(point.object,PositionDef,point.position);
+      if(point.object) {
+        J3.copy(point.object.position,point.position);
+        // EM.set(point.object,PositionDef,point.position);
+      }
     }
     for(let i=0;i<water.points.length;i++){
       for(let j=0; j<water.points[0].length; j++){
-        water.points[i][j].object.position[0] = water.points[i][j].position[0];
-        water.points[i][j].object.position[1] = water.points[i][j].position[1];
-        water.points[i][j].object.position[2] = water.points[i][j].position[2];
+        let point = water.points[i][j];
+        if(point.object){
+          J3.copy(point.object.position,point.position);
+        }
+        // water.points[i][j].object.position[0] = water.points[i][j].position[0];
+        // water.points[i][j].object.position[1] = water.points[i][j].position[1];
+        // water.points[i][j].object.position[2] = water.points[i][j].position[2];
       }
     }
 
