@@ -37,6 +37,9 @@ import { LinearVelocityDef } from "../motion/velocity.js";
 const DBG_GHOST = false;
 const DEBUG = false;
 
+// increased buffer size on ( should probably change back to 8000 :/ 
+// tmpStack()
+
 export module J3{
   export function add(vA: V3, vB: V3, newVector: boolean = true): V3{
     const vOut = newVector ? V3.mk() : vA;
@@ -136,6 +139,7 @@ export async function initJoelGame() {
   // grid
   const gridDef = [RenderableConstructDef, PositionDef, ScaleDef, ColorDef] as const;
 
+
   const grid = createObj(
     gridDef,
     {
@@ -191,7 +195,7 @@ export async function initJoelGame() {
     return clusters;
   }
 
-  
+  // _stk.pop();
     
   //generate holds
   type Hold = EntityW<[typeof PositionDef]>;
@@ -220,7 +224,7 @@ export async function initJoelGame() {
     }
     return holds;
   }
-
+  // _stk.pop();
   //get hold catch points
   const holdCatchPoints = getHoldCatchPoints();
   function getHoldCatchPoints(): V3[]{
@@ -300,7 +304,7 @@ export async function initJoelGame() {
     waterArr[yNum][xNum].fixed = true;
     return waterArr;
   }
-
+  // _stk.pop();
   function mkWaterSticks(waterArr: Point[][]): Stick[]{
     const sticks: Stick[] = [];
     for(let y=0; y<waterArr.length; y++){
@@ -311,7 +315,7 @@ export async function initJoelGame() {
     }
     return sticks;
   }
-
+  // _stk.pop();
   function addSlack(points: Point[][], slackAmt: number){
     slackAmt /= points[0].length
     for(let y = 0; y < points.length; y++){
@@ -444,6 +448,7 @@ export async function initJoelGame() {
     sineMin: number;
     sineRatio: number;
     sineUp: boolean;
+    point: Point;
   }
 
   interface Water {
@@ -467,19 +472,23 @@ export async function initJoelGame() {
       sinePos: waterArr[0][0].position[2],
       sineMax: waterArr[0][0].position[2] + SINE_HEIGHT,
       sineMin: waterArr[0][0].position[2] - SINE_HEIGHT,
-      sineRatio: .08,
-      sineUp: true
+      sineRatio: .03,
+      sineUp: true,
+      point: waterArr[Math.floor(waterArr.length/2)+6][Math.floor(waterArr[0].length/2)]
     }
-
   } 
 
-  addSlack(water.points, .1);
+  // addSlack(water.points, .1);
+
+  // fix waive point
+  water.wave.point.fixed = true;
+
 
   const GRAVITY = .008
   const STICK_ITTERATIONS = 20;
   const WATER_STICK_ITTERATIONS = 10;
   let waitCount = 60;
-  let fixedMoveCount = 65;
+  // let fixedMoveCount = 65;
   let moveAmt = V(.006,-.1,.4);
   let mouseIsPressed = false;
   let mouseStart = V(0,0);
@@ -498,6 +507,8 @@ export async function initJoelGame() {
   const CAMERA_OFFSET = V(0,-20,3);
   let cameraPosition = J3.add(CAMERA_OFFSET,GUY_LH_START);
   const CAMERA_SPEED = .01;
+
+  //fix waive point
 
 
   function getRandomInt(min:number, max:number):number {
@@ -537,14 +548,17 @@ export async function initJoelGame() {
 
   function startGame(){
     jumpHand.fixed = false;
-      holdHand.fixed = true;
-      jump = false;
-      holdHand.position = J3.clone(GUY_LH_START);
-      holdHand.prevPosition= lh.position;
+    holdHand.fixed = true;
+    jump = false;
+    J3.copy(holdHand.position, GUY_LH_START)
+    J3.copy(holdHand.prevPosition, holdHand.position);
+    // holdHand.position = J3.clone(GUY_LH_START);
+    // holdHand.prevPosition= holdHand.position;
+    escapeCurrentHoldCount = ESCAPE_AMT;
   }
   //update points and sticks each frame:
   EM.addSystem("stickAndPoint",Phase.GAME_WORLD,[],[InputsDef],(_, {inputs})=>{
-
+    // const _stk = tmpStack();
     //init game
     if(!started){
       started = true;
@@ -563,11 +577,12 @@ export async function initJoelGame() {
     //to do: add game over check
     if(inputs.keyClicks['m']){
       startGame();
-      jumpHand.fixed = false;
-      holdHand.fixed = true;
-      jump = false;
-      holdHand.position = J3.clone(GUY_LH_START);
-      holdHand.prevPosition= lh.position;
+      // jumpHand.fixed = false;
+      // holdHand.fixed = true;
+      // jump = false;
+      // J3.copy(holdHand.position, GUY_LH_START)
+      // J3.copy(holdHand.prevPosition, holdHand.position);
+      // escapeCurrentHoldCount = ESCAPE_AMT;
     }
 
     if(!mouseIsPressed && inputs.ldown){
@@ -587,7 +602,7 @@ export async function initJoelGame() {
     function generateWave(){
       if(water.wave.sineUp){
         water.wave.sinePos += (water.wave.sineMax - water.wave.sinePos) * water.wave.sineRatio;
-        if(water.wave.sinePos > water.wave.sineMax - .1){
+        if(water.wave.sinePos > water.wave.sineMax - .08){
           // to do: update external sineUp boolean
           water.wave.sineUp = false;
         }
@@ -599,7 +614,8 @@ export async function initJoelGame() {
           water.wave.sineUp = true;
         }
       }
-      water.points[0][0].position[2] = water.wave.sinePos;
+      water.wave.point.position[2] = water.wave.sinePos;
+      // water.points[0][0].position[2] = water.wave.sinePos;
       // for(let y = 0; y < water.points.length; y++){
       //   water.points[y][0].position[2] = water.wave.sinePos;
       // }
@@ -667,7 +683,7 @@ export async function initJoelGame() {
       // }
       else{
         const nextPrevPosition = J3.clone(point.position);
-        V3.add(V3.sub(point.position,point.prevPosition),point.position, point.position);
+        V3.add(J3.sub(point.position,point.prevPosition),point.position, point.position);
         point.position[2] -= GRAVITY;
         // V3.add(V(0,0,GRAVITY),point.position, point.position)
         // V3.copy(point.prevPosition, nextPrevPosition);
@@ -695,7 +711,8 @@ export async function initJoelGame() {
       mousePosition[1] = 0;
       // mouseStart[0] = inputs.mousePos[0];
       // mouseStart[1] = inputs.mousePos[1];
-      holdHand.fixed = true;
+      //shouldn't be necesary:
+      // holdHand.fixed = true;
       jumpHand.position[0] = holdHand.position[0];
       jumpHand.position[1] = holdHand.position[1];
       jumpHand.position[2] = holdHand.position[2];
@@ -786,11 +803,11 @@ export async function initJoelGame() {
       }
     }
 
-    if(fixedMoveCount === -5){
-      fixedMoveCount--;
-      head.fixed = false;
-      rh.fixed = true;
-    }
+    // if(fixedMoveCount === -5){
+    //   fixedMoveCount--;
+    //   head.fixed = false;
+    //   rh.fixed = true;
+    // }
 
 
     // draw sticks

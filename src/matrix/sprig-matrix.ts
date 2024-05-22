@@ -129,6 +129,7 @@ function mkTmpProxyHandler(gen: number) {
 let _tmpProxyHandler: ProxyHandler<Float32Array> =
   mkTmpProxyHandler(_tmpResetGen);
 
+  //was 8000;
 const BUFFER_SIZE = 8000;
 const buffer = new ArrayBuffer(BUFFER_SIZE);
 let bufferIndex = 0;
