@@ -33,12 +33,10 @@ function assert(condition: any, msg?: string): asserts condition {
                 graph.analyser = graph.ctx.createAnalyser();
                 track.connect(graph.analyser);
             } 
-
             if(hasGain){
                 graph.gain = graph.ctx.createGain();
                 track.connect(graph.gain);
             } 
-
             if(hasSterPan){
                 graph.pan = graph.ctx.createStereoPanner();
                 if(graph.gain) graph.gain.connect(graph.pan);
@@ -56,4 +54,25 @@ function assert(condition: any, msg?: string): asserts condition {
             else track.connect(graph.ctx.destination);
 
             return graph;
+    }
+
+    export function configureAnalyser(
+        analyser: AnalyserNode, 
+        fftSize: number = 2048, 
+        minDecibles: number = -100, 
+        maxDecibles: number = -30, 
+        smoothing: number = .8){
+            analyser.fftSize = fftSize;
+            analyser.minDecibels = minDecibles;
+            analyser.maxDecibels = maxDecibles;
+            analyser.smoothingTimeConstant = smoothing;
+    }
+
+    export function buildDataArray(analyser: AnalyserNode): Uint8Array{
+        return new Uint8Array(analyser.frequencyBinCount);
+    }
+
+    export function getFrequencyData(analyser: AnalyserNode, dataArr: Uint8Array): Uint8Array{
+        analyser.getByteTimeDomainData(dataArr);
+        return dataArr;
     }
