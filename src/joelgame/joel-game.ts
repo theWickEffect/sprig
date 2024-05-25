@@ -20,7 +20,7 @@ import { stdMeshPipe } from "../render/pipelines/std-mesh.js";
 import { outlineRender } from "../render/pipelines/std-outline.js";
 import { postProcess } from "../render/pipelines/std-post.js";
 import { shadowPipelines } from "../render/pipelines/std-shadow.js";
-import { RendererDef, RenderableConstructDef, RenderableDef } from "../render/renderer-ecs.js";
+import { RendererDef, RenderableConstructDef, RenderableDef, Renderable } from "../render/renderer-ecs.js";
 import { sketch, sketchLine } from "../utils/sketch.js";
 import { addWorldGizmo } from "../utils/utils-game.js";
 import { createObj, defineObj } from "../ecs/em-objects.js";
@@ -33,11 +33,11 @@ import { InputsDef } from "../input/inputs.js";
 import { ld53ShipAABBs } from "../wood/shipyard.js";
 import { ControllableDef } from "../input/controllable.js";
 import { LinearVelocityDef } from "../motion/velocity.js";
+import { NonupdatableComponentDef } from "../ecs/em-components";
 
 const DBG_GHOST = false;
 const DEBUG = false;
 
-// increased buffer size on ( should probably change back to 8000 :/ 
 // tmpStack()
 
 export module J3{
@@ -327,7 +327,7 @@ export async function initJoelGame() {
   // GUY_LH_START[1] -= 3;
   const GUY_OFFSET = J3.add(GUY_LH_START,GUY_LH_ZERO);
   
-  function mkEntity(mesh: Mesh, position: V3, scale: number, color: V3 ):EntityW<[typeof PositionDef]>{
+  function mkEntity(mesh: Mesh, position: V3, scale: number, color: V3 ):EntityW<[typeof PositionDef, typeof RenderableConstructDef]>{
     let ent = EM.mk();
     EM.set(ent, RenderableConstructDef, mesh);
     EM.set(ent, ColorDef, color);
@@ -533,19 +533,20 @@ export async function initJoelGame() {
   interface Water {
     points: Point[][];
     sticks: Stick[];
-    object: Entity;
+    mesh: Mesh;
+    object: EntityW<[NonupdatableComponentDef<"renderable", Renderable, [r: Renderable], false>], number>;
     wave: Wave;
   }
   
-  const WATER_WIDTH = 100;
-  const WATER_DEPTH = 100;
-  const WATER_HEIGHT = .5
-  const WATER_INCREMENT = 5; 
+  const WATER_WIDTH = 1000;
+  const WATER_DEPTH = 600;
+  const WATER_HEIGHT = .7
+  const WATER_INCREMENT = 50; 
 
-  const waterArr = mkWaterGrid(WATER_WIDTH,WATER_DEPTH,WATER_INCREMENT,-1*(WATER_DEPTH/2),-1*(WATER_WIDTH/2),WATER_HEIGHT);
+  const waterArr = mkWaterGrid(WATER_WIDTH,WATER_DEPTH,WATER_INCREMENT,-1*(WATER_DEPTH/6),-1*(WATER_WIDTH/2),WATER_HEIGHT);
   const WATER_X_POINTS = waterArr[0].length;
 
-  const SINE_HEIGHT = 1;
+  const SINE_HEIGHT = 6;
   // const wave = {
   //   sinePos: waterArr[0][0].position[2],
   //     sineMax: waterArr[0][0].position[2] + SINE_HEIGHT,
@@ -556,10 +557,14 @@ export async function initJoelGame() {
 
   // const waterObject = EM.mk();
   // EM.set(waterObject,)
+  const waterMesh = mkWaterMesh(waterArr);
+  const waterTemp = mkEntity(waterMesh,V(0,0,0),1,ENDESGA16.lightBlue);
+  const waterObject = await EM.whenEntityHas(waterTemp,RenderableDef);
   const water: Water = {
     points: waterArr,
     sticks: mkWaterSticks(waterArr),
-    object: mkEntity(mkWaterMesh(waterArr),V(0,0,0),1,ENDESGA16.lightBlue),
+    object: waterObject,
+    mesh: waterMesh,
     wave: {
       sinePos: waterArr[0][0].position[2],
       sineMax: waterArr[0][0].position[2] + SINE_HEIGHT,
@@ -569,6 +574,7 @@ export async function initJoelGame() {
       point: waterArr[Math.floor(waterArr.length/2)+6][Math.floor(waterArr[0].length/2)]
     }
   } 
+
 
   function mkWaterMesh(waterPoints: Point[][]): Mesh{
     const verts: V3[] = [];
@@ -604,6 +610,8 @@ export async function initJoelGame() {
     }
     return mesh;
   }
+
+  
 
   // const waterMesh = mkWaterMesh(waterArr);
 
@@ -935,11 +943,22 @@ export async function initJoelGame() {
         if(point.object){
           J3.copy(point.object.position,point.position);
         }
+        else{
+          J3.copy(water.mesh.pos[i*WATER_X_POINTS+j], point.position);
+          // let foo: Mesh;
+          // const wall2 = await EM.whenEntityHas(wall, RenderableDef);
+          // wall2.renderable.meshHandle.pool.updateMeshVertices();
+          // const waterObject = await EM.whenEntityHas(water.object,RenderableDef);
+          // water.object.renderableConstruct.meshOrProto.
+        }
         // water.points[i][j].object.position[0] = water.points[i][j].position[0];
         // water.points[i][j].object.position[1] = water.points[i][j].position[1];
         // water.points[i][j].object.position[2] = water.points[i][j].position[2];
       }
     }
+
+    water.object.renderable.meshHandle.pool.updateMeshVertices(water.object.renderable.meshHandle,water.mesh);
+
 
     // if(fixedMoveCount === -5){
     //   fixedMoveCount--;
