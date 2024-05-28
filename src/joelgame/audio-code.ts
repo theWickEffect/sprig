@@ -62,13 +62,14 @@ function assert(condition: any, msg?: string): asserts condition {
         minDecibles: number = -100, 
         maxDecibles: number = -30, 
         smoothing: number = .8){
+            analyser.maxDecibels = 0;
             analyser.fftSize = fftSize;
             analyser.minDecibels = minDecibles;
             analyser.maxDecibels = maxDecibles;
             analyser.smoothingTimeConstant = smoothing;
     }
 
-    export function buildDataArray(analyser: AnalyserNode): Uint8Array{
+    export function buildFreqDataArray(analyser: AnalyserNode): Uint8Array{
         return new Uint8Array(analyser.frequencyBinCount);
     }
 

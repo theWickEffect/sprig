@@ -25,6 +25,7 @@ export const InputsDef = EM.defineResource("inputs", () => {
     rclick: false,
     ldown: false,
     rdown: false,
+    anyClick: false,
     // TODO(@darzu): we might need a better way to track and think about events
     keyClicks: {} as { [key: string]: number },
     keyDowns: {} as { [key: string]: boolean },
@@ -106,6 +107,7 @@ function createInputsReader(canvas: Canvas): () => Inputs {
   // track which keys are pressed for use in the game loop
   const keyDowns: { [keycode: string]: boolean } = {};
   const accumulated_keyClicks: { [keycode: string]: number } = {};
+  let accumulated_anyClicks = false;
   window.addEventListener(
     "keydown",
     (ev) => {
@@ -116,8 +118,10 @@ function createInputsReader(canvas: Canvas): () => Inputs {
           console.log("new key: " + k);
         }
       }
-      if (!keyDowns[k])
+      if (!keyDowns[k]){
+        accumulated_anyClicks = true;
         accumulated_keyClicks[k] = (accumulated_keyClicks[k] ?? 0) + 1;
+      }
       keyDowns[k] = true;
     },
     false
@@ -136,6 +140,11 @@ function createInputsReader(canvas: Canvas): () => Inputs {
       accumulated_keyClicks[k] = 0;
     }
     return _result_keyClicks;
+  }
+  function takeAccumulatedAnyClicks(): boolean{
+    const result = accumulated_anyClicks;
+    accumulated_anyClicks = false;
+    return result;
   }
 
   // track mouse movement for use in the game loop
@@ -213,6 +222,7 @@ function createInputsReader(canvas: Canvas): () => Inputs {
       rclick: rClicks > 0,
       ldown: isLMouseDown,
       rdown: isRMouseDown,
+      anyClick: takeAccumulatedAnyClicks(),
       keyDowns,
       keyClicks,
     };

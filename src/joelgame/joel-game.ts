@@ -33,12 +33,18 @@ import { InputsDef } from "../input/inputs.js";
 import { ld53ShipAABBs } from "../wood/shipyard.js";
 import { ControllableDef } from "../input/controllable.js";
 import { LinearVelocityDef } from "../motion/velocity.js";
-import { NonupdatableComponentDef } from "../ecs/em-components";
+import { NonupdatableComponentDef } from "../ecs/em-components.js";
+import { AudioGraph, buildFreqDataArray, configureAnalyser, createAudioGraph } from "./audio-code.js";
 
 const DBG_GHOST = false;
 const DEBUG = false;
 
 // tmpStack()
+
+function assert(condition: any, msg?: string): asserts condition {
+  if (!condition)
+    throw new Error(msg ?? "Assertion failed (consider adding a helpful msg).");
+}
 
 export module J3{
   export function add(vA: V3, vB: V3, newVector: boolean = true): V3{
@@ -320,7 +326,6 @@ export async function initJoelGame() {
   // }
 
   //generate guy
-
   const GUY_SCALE = .75;
   const GUY_LH_ZERO = V(4.2,0,-5);
   let GUY_LH_START = V(holds[0].position[0], holds[0].position[1] - 2, holds[0].position[2])
@@ -620,6 +625,42 @@ export async function initJoelGame() {
   // fix waive point
   water.wave.point.fixed = true;
 
+  let audioElement: HTMLAudioElement;
+  //  = new Audio("/Users/joelsheppard/vscode/Web-Dev/sprig/sprig/src/joelgame/audio-files/techno2.mp3")
+  let audioGraph: AudioGraph;
+  let freqDataArr: Uint8Array;
+  let audioVisualiserArr: Point[];
+  //  = createAudioGraph(AUDIO_ELEMENT , false, true);
+  // assert(audioGraph.analyser);
+  // configureAnalyser(audioGraph.analyser,32,-40,0,0);
+  // const freqDataArr = buildFreqDataArray(audioGraph.analyser);
+
+
+  function buildFreqAmpVisualiser(bands: number, xStart: number = 0, yStart: number = 0, zStart: number = 0, color: V3 = ENDESGA16.darkRed): Point[] {
+    const arr: Point[] = []
+    const scale = 2
+    for (let i = 0; i < bands; i++){
+      arr.push(mkPoint(mkEntity(mkCubeMesh(),V(xStart+i*scale,yStart,zStart), 1, color),true));
+    }
+    return arr;
+  }
+
+  function updateFreqAmpVisualiser(visArr: Point[], dataArr: Uint8Array, analyser: AnalyserNode, scale: number = .1){
+    audioGraph.analyser?.getByteTimeDomainData(dataArr);
+    for(let i=0;i<visArr.length;i++){
+      const point = visArr[i];
+      assert(point.object);
+      point.object.position[2] = point.prevPosition[2] + dataArr[i] * scale;
+    }
+  }
+
+  // const audioVisualiserArr = buildFreqAmpVisualiser(freqDataArr.length,-10,0,5,ENDESGA16.darkRed);
+  // for(let i=0;i<audioVisualiserArr.length;i++) assert(audioVisualiserArr[i].object)
+  
+
+
+
+
 
   const GRAVITY = .008
   const STICK_ITTERATIONS = 20;
@@ -645,8 +686,8 @@ export async function initJoelGame() {
   let cameraPosition = J3.add(CAMERA_OFFSET,GUY_LH_START);
   const CAMERA_SPEED = .01;
 
-  //fix waive point
-
+  // let audioPlaying = false;
+  // AUDIO_ELEMENT.play();
 
   function getRandomInt(min:number, max:number):number {
     const minCeiled = Math.ceil(min);
@@ -701,6 +742,16 @@ export async function initJoelGame() {
       started = true;
       startGame();
     } 
+
+    if(!audioElement && inputs.anyClick){
+      audioElement = new Audio("./audio-files/techno2.mp3");
+      audioGraph = createAudioGraph(audioElement,false,true);
+      assert(audioGraph.analyser);
+      configureAnalyser(audioGraph.analyser,32,-30,0,0);
+      freqDataArr = buildFreqDataArray(audioGraph.analyser);
+      audioVisualiserArr = buildFreqAmpVisualiser(freqDataArr.length,-10,0,5,ENDESGA16.darkRed);
+      audioElement.play();
+    }
 
     //calculate change to camera position
     const camTargetPos = J3.add(holdHand.position,CAMERA_OFFSET);
@@ -974,6 +1025,10 @@ export async function initJoelGame() {
         key: `stick_${i}`
       })
 
+    if(audioGraph){
+      assert(audioGraph.analyser);
+      updateFreqAmpVisualiser(audioVisualiserArr,freqDataArr,audioGraph.analyser);
+    }
   });
 
 
