@@ -271,7 +271,7 @@ export async function initJoelGame() {
   // _stk.pop();
     
   //generate holds
-  type Hold = EntityW<[typeof PositionDef]>;
+  type Hold = EntityW<[typeof PositionDef, typeof ColorDef]>;
   const holds = generateHolds();
   function generateHolds():Hold[]{
     const holds: Hold[] = [];
@@ -646,18 +646,55 @@ export async function initJoelGame() {
   }
 
   function updateFreqAmpVisualiser(visArr: Point[], dataArr: Uint8Array, analyser: AnalyserNode, scale: number = .1){
-    audioGraph.analyser?.getByteTimeDomainData(dataArr);
+    // audioGraph.analyser?.getByteFrequencyData(dataArr);
     for(let i=0;i<visArr.length;i++){
       const point = visArr[i];
       assert(point.object);
       point.object.position[2] = point.prevPosition[2] + dataArr[i] * scale;
     }
+    // updateHoldColors(dataArr,1);
   }
+
+  function updateHoldColors(dataArr:Uint8Array, band: number){
+    if(dataArr[band]!==0){
+      if(holds[0].color[1] > 0.29 && holds[0].color[1] < 0.3){
+        for(let i = 0;i<holds.length-1;i++){
+          // EM.set(holds[i],ColorDef,ENDESGA16.blue);
+          holds[i].color[1] = 0.04;
+        }
+      }
+      else{
+        for(let i = 0;i<holds.length-1;i++){
+          EM.set(holds[i],ColorDef,ENDESGA16.red);
+          holds[i].color[1] = 0.295;
+        }
+      }
+    }
+  }
+
+  function updateHoldColors2(){
+    if(holds[0].color[1] > 0.29 && holds[0].color[1] < 0.3){
+      for(let i = 0;i<holds.length-1;i++){
+        // EM.set(holds[i],ColorDef,ENDESGA16.blue);
+        holds[i].color[1] = 0.04;
+      }
+    }
+    else{
+      for(let i = 0;i<holds.length-1;i++){
+        EM.set(holds[i],ColorDef,ENDESGA16.red);
+        holds[i].color[1] = 0.295;
+      }
+    }
+  }
+
 
   // const audioVisualiserArr = buildFreqAmpVisualiser(freqDataArr.length,-10,0,5,ENDESGA16.darkRed);
   // for(let i=0;i<audioVisualiserArr.length;i++) assert(audioVisualiserArr[i].object)
   
 
+
+  console.log("red: " + ENDESGA16.red);
+  console.log("orange: " + ENDESGA16.orange);
 
 
 
@@ -685,6 +722,36 @@ export async function initJoelGame() {
   const CAMERA_OFFSET = V(0,-20,3);
   let cameraPosition = J3.add(CAMERA_OFFSET,GUY_LH_START);
   const CAMERA_SPEED = .01;
+  const amplitudeArr: number[] = [100,100,100,100,100,100,100,100,100];
+  let maxAmp = 100;
+
+  function getMax(arr: number[]): number{
+    let max = arr[0];
+    for(let i=0;i<arr.length;i++){
+      max = Math.max(max,arr[i]);
+    }
+    return max;
+  }
+  function updateAmpMax(arr: number[], newAmp: number): number{
+    let pop = arr.pop();
+    arr.unshift(newAmp);
+    if(newAmp>=maxAmp) maxAmp = newAmp;
+    else if (pop===maxAmp) maxAmp = getMax(arr);
+    return maxAmp;
+  }
+  function getAmp(arr: Uint8Array, highestBand: number, lowestBand: number): number{
+    let solution = 0;
+    for(let i=highestBand; i<=lowestBand;i++){
+      solution += arr[i];
+    }
+    return solution;
+  }
+  function holdChangeControl(ampArr: number[], freqAmpArr: Uint8Array, highestBand: number, lowestBand: number = 15): boolean{
+    const newAmp = getAmp(freqAmpArr, highestBand, lowestBand);
+    const solution = newAmp > maxAmp;
+    updateAmpMax(ampArr, newAmp);
+    return solution;
+  }
 
   // let audioPlaying = false;
   // AUDIO_ELEMENT.play();
@@ -747,11 +814,13 @@ export async function initJoelGame() {
       audioElement = new Audio("./audio-files/techno2.mp3");
       audioGraph = createAudioGraph(audioElement,false,true);
       assert(audioGraph.analyser);
-      configureAnalyser(audioGraph.analyser,32,-30,0,0);
+      configureAnalyser(audioGraph.analyser,32,-90,0,0);
       freqDataArr = buildFreqDataArray(audioGraph.analyser);
-      audioVisualiserArr = buildFreqAmpVisualiser(freqDataArr.length,-10,0,5,ENDESGA16.darkRed);
+      // audioVisualiserArr = buildFreqAmpVisualiser(freqDataArr.length,-10,0,5,ENDESGA16.darkRed);
       audioElement.play();
-    }
+    } 
+    //loop track 
+    // if(audioElement && audioElement.)
 
     //calculate change to camera position
     const camTargetPos = J3.add(holdHand.position,CAMERA_OFFSET);
@@ -1019,15 +1088,36 @@ export async function initJoelGame() {
 
 
     // draw sticks
-    for (let i = 0; i < sticks.length; i++)
+    for (let i = 0; i < sticks.length; i++){
       sketchLine(sticks[i].pointA.position, sticks[i].pointB.position, {
         color: ENDESGA16.blue,
         key: `stick_${i}`
       })
+    }
 
     if(audioGraph){
       assert(audioGraph.analyser);
-      updateFreqAmpVisualiser(audioVisualiserArr,freqDataArr,audioGraph.analyser);
+      audioGraph.analyser?.getByteFrequencyData(freqDataArr);
+      let controll = holdChangeControl(amplitudeArr,freqDataArr, 9);
+      console.log(controll);
+      if(controll){
+        updateHoldColors2(); 
+      }
+      // console.log(amplitudeArr[0]);
+      // updateFreqAmpVisualiser(audioVisualiserArr,freqDataArr,audioGraph.analyser);
+      // updateHoldColors(freqDataArr,1);
+      // if(freqDataArr[10]!==0){
+      //   if(holds[0].color ===ENDESGA16.red){
+      //     for(let i = 0;i<holds.length-1;i++){
+      //       EM.set(holds[i],ColorDef,ENDESGA16.blue);
+      //     }
+      //   }
+      //   else{
+      //     for(let i = 0;i<holds.length-1;i++){
+      //       EM.set(holds[i],ColorDef,ENDESGA16.red);
+      //     }
+      //   }
+      // }
     }
   });
 
