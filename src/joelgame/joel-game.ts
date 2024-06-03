@@ -349,7 +349,8 @@ export async function initJoelGame() {
 
   function mkPoint(e: EntityW<[typeof PositionDef]>, fixed: boolean): Point {
     return {
-      position: J3.clone(e.position), 
+      // position: J3.clone(e.position), 
+      position: e.position,
       prevPosition: J3.clone(e.position),
       object: e, 
       fixed: fixed
@@ -697,7 +698,9 @@ export async function initJoelGame() {
   console.log("orange: " + ENDESGA16.orange);
 
 
-
+  //color stuff
+  let colorChangeCount = 0;
+  const COLOR_CHANGE_OPEN = 14;
 
   const GRAVITY = .008
   const STICK_ITTERATIONS = 20;
@@ -1051,12 +1054,12 @@ export async function initJoelGame() {
     // _stk.pop();
 
     // set object locations to their calculated locatoins:
-    for(let point of bodyPoints){
-      if(point.object) {
-        J3.copy(point.object.position,point.position);
-        // EM.set(point.object,PositionDef,point.position);
-      }
-    }
+    // for(let point of bodyPoints){
+    //   if(point.object) {
+    //     J3.copy(point.object.position,point.position);
+    //     // EM.set(point.object,PositionDef,point.position);
+    //   }
+    // }
     for(let i=0;i<water.points.length;i++){
       for(let j=0; j<water.points[0].length; j++){
         let point = water.points[i][j];
@@ -1096,11 +1099,13 @@ export async function initJoelGame() {
     }
 
     if(audioGraph){
+      colorChangeCount++;
       assert(audioGraph.analyser);
       audioGraph.analyser?.getByteFrequencyData(freqDataArr);
       let controll = holdChangeControl(amplitudeArr,freqDataArr, 9);
       console.log(controll);
-      if(controll){
+      if(colorChangeCount> COLOR_CHANGE_OPEN && controll){
+        colorChangeCount = 0;
         updateHoldColors2(); 
       }
       // console.log(amplitudeArr[0]);
