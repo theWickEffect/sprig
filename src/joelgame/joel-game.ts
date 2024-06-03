@@ -1054,12 +1054,12 @@ export async function initJoelGame() {
     // _stk.pop();
 
     // set object locations to their calculated locatoins:
-    // for(let point of bodyPoints){
-    //   if(point.object) {
-    //     J3.copy(point.object.position,point.position);
-    //     // EM.set(point.object,PositionDef,point.position);
-    //   }
-    // }
+    for(let point of bodyPoints){
+      if(point.object) {
+        J3.copy(point.object.position,point.position);
+        // EM.set(point.object,PositionDef,point.position);
+      }
+    }
     for(let i=0;i<water.points.length;i++){
       for(let j=0; j<water.points[0].length; j++){
         let point = water.points[i][j];
