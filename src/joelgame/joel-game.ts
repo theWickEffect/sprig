@@ -170,11 +170,26 @@ export async function initJoelGame() {
   //   aabb: HEX_AABB,
   // });
   
-  const wallHeight = 40;
-  const wallWidth = 20;
-  const CLUSTER_VERT_OFFSET = 3;
-  const CLUSTER_VERT_VAR = 5;
-  const CLUSTER_SIZE = 4;
+  interface worldParams {
+    wallHeight: number;
+    wallWidth: number;
+    CLUSTER_VERT_OFFSET: number;
+    CLUSTER_VERT_VAR: number;
+    CLUSTER_SIZE: number;
+  }
+
+  const world: worldParams = {
+    wallHeight: 40,
+    wallWidth:20,
+    CLUSTER_VERT_OFFSET: 3,
+    CLUSTER_VERT_VAR: 5,
+    CLUSTER_SIZE: 4
+  }
+  // const wallHeight = 40;
+  // const wallWidth = 20;
+  // const CLUSTER_VERT_OFFSET = 3;
+  // const CLUSTER_VERT_VAR = 5;
+  // const CLUSTER_SIZE = 4;
   
   function mkTriMesh(va: V3, vb: V3, vc: V3): Mesh{
     let result: Mesh = {
@@ -243,9 +258,9 @@ export async function initJoelGame() {
 
   //build wall
   const wall = EM.mk();
-  EM.set(wall, RenderableConstructDef, mkRectMesh(wallWidth,3,wallHeight));
+  EM.set(wall, RenderableConstructDef, mkRectMesh(world.wallWidth,3,world.wallHeight));
   EM.set(wall, ColorDef, ENDESGA16.darkBrown);
-  EM.set(wall, PositionDef, V(0, 1.5, wallHeight / 2));
+  EM.set(wall, PositionDef, V(0, 1.5, world.wallHeight / 2));
   EM.set(wall,RotationDef, quat.fromYawPitchRoll(0,Math.PI*.1,0));
 
   // const wall2 = await EM.whenEntityHas(wall, RenderableDef);
@@ -255,14 +270,14 @@ export async function initJoelGame() {
   const clusters = generateClusters();
   function generateClusters(): V3[]{
     let clusters: V3[] = [];
-    let hor = Math.random()* (wallWidth-3) - (wallWidth-3)/2;
+    let hor = Math.random()* (world.wallWidth-3) - (world.wallWidth-3)/2;
     let vert = 5;
-    let dep = (vert-(wallHeight/2));
+    let dep = (vert-(world.wallHeight/2));
     clusters.push(V(hor, dep, vert));
-    while(clusters[clusters.length-1][2] < wallHeight - 10){
-      hor = Math.random()* (wallWidth-5) - (wallWidth-5)/2;
-      vert = Math.random()* CLUSTER_VERT_VAR + clusters[clusters.length-1][2] + CLUSTER_VERT_OFFSET;
-      dep = (vert-(wallHeight/2))*-.33;
+    while(clusters[clusters.length-1][2] < world.wallHeight - 10){
+      hor = Math.random()* (world.wallWidth-5) - (world.wallWidth-5)/2;
+      vert = Math.random()* world.CLUSTER_VERT_VAR + clusters[clusters.length-1][2] + world.CLUSTER_VERT_OFFSET;
+      dep = (vert-(world.wallHeight/2))*-.33;
       clusters.push(V(hor, dep, vert));
     }
     return clusters;
@@ -281,9 +296,9 @@ export async function initJoelGame() {
         const hold = EM.mk();
         EM.set(hold, RenderableConstructDef, TetraMesh);
         EM.set(hold, ColorDef, ENDESGA16.red);
-        const hor = Math.random()* CLUSTER_SIZE + cluster[0] - CLUSTER_SIZE / 2;
-        const vert = Math.random()* CLUSTER_SIZE + cluster[2] - CLUSTER_SIZE / 2;
-        const dep = (vert-(wallHeight/2)) * -.33;
+        const hor = Math.random()* world.CLUSTER_SIZE + cluster[0] - world.CLUSTER_SIZE / 2;
+        const vert = Math.random()* world.CLUSTER_SIZE + cluster[2] - world.CLUSTER_SIZE / 2;
+        const dep = (vert-(world.wallHeight/2)) * -.33;
         EM.set(hold, PositionDef, V(hor, dep ,vert));
         EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, Math.PI*.6, 0));
         quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
