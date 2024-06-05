@@ -191,68 +191,68 @@ export async function initJoelGame() {
   // const CLUSTER_VERT_VAR = 5;
   // const CLUSTER_SIZE = 4;
   
-  function mkTriMesh(va: V3, vb: V3, vc: V3): Mesh{
-    let result: Mesh = {
-      dbgName: "flatTri",
-      pos: [va,vb,vc],
-      tri:[
-        V(0,1,2)
-      ],
-      quad: [],
-      colors: [ENDESGA16.lightBlue],
-      surfaceIds: [1],
-      usesProvoking: true
-    }
-    return result;
-  }
+  // function mkTriMesh(va: V3, vb: V3, vc: V3): Mesh{
+  //   let result: Mesh = {
+  //     dbgName: "flatTri",
+  //     pos: [va,vb,vc],
+  //     tri:[
+  //       V(0,1,2)
+  //     ],
+  //     quad: [],
+  //     colors: [ENDESGA16.lightBlue],
+  //     surfaceIds: [1],
+  //     usesProvoking: true
+  //   }
+  //   return result;
+  // }
 
-  function mkRectMesh(xLen: number, yLen: number, zLen: number): Mesh {
-    let hx = xLen / 2;
-    let hy = yLen / 2;
-    let hz = zLen / 2;
+  // function mkRectMesh(xLen: number, yLen: number, zLen: number): Mesh {
+  //   let hx = xLen / 2;
+  //   let hy = yLen / 2;
+  //   let hz = zLen / 2;
   
-    let result: Mesh = {
-      dbgName: "rect",
-      pos: [
-        V(+hx, +hy, +hz),
-        V(-hx, +hy, +hz),
-        V(-hx, -hy, +hz),
-        V(+hx, -hy, +hz),
+  //   let result: Mesh = {
+  //     dbgName: "rect",
+  //     pos: [
+  //       V(+hx, +hy, +hz),
+  //       V(-hx, +hy, +hz),
+  //       V(-hx, -hy, +hz),
+  //       V(+hx, -hy, +hz),
   
-        V(+hx, +hy, -hz),
-        V(-hx, +hy, -hz),
-        V(-hx, -hy, -hz),
-        V(+hx, -hy, -hz),
-      ],
-      tri: [],
-      quad: [
-        // +Z
-        V(0, 1, 2, 3),
-        // +Y
-        V(4, 5, 1, 0),
-        // +X
-        V(3, 7, 4, 0),
-        // -X
-        V(2, 1, 5, 6),
-        // -Y
-        V(6, 7, 3, 2),
-        // -Z
-        V(5, 4, 7, 6),
-      ],
-      colors: [
-        V(0, 0, 0),
-        V(0, 0, 0),
-        V(0, 0, 0),
-        V(0, 0, 0),
-        V(0, 0, 0),
-        V(0, 0, 0),
-      ],
-      surfaceIds: [1, 2, 3, 4, 5, 6],
-      usesProvoking: true,
-    };
+  //       V(+hx, +hy, -hz),
+  //       V(-hx, +hy, -hz),
+  //       V(-hx, -hy, -hz),
+  //       V(+hx, -hy, -hz),
+  //     ],
+  //     tri: [],
+  //     quad: [
+  //       // +Z
+  //       V(0, 1, 2, 3),
+  //       // +Y
+  //       V(4, 5, 1, 0),
+  //       // +X
+  //       V(3, 7, 4, 0),
+  //       // -X
+  //       V(2, 1, 5, 6),
+  //       // -Y
+  //       V(6, 7, 3, 2),
+  //       // -Z
+  //       V(5, 4, 7, 6),
+  //     ],
+  //     colors: [
+  //       V(0, 0, 0),
+  //       V(0, 0, 0),
+  //       V(0, 0, 0),
+  //       V(0, 0, 0),
+  //       V(0, 0, 0),
+  //       V(0, 0, 0),
+  //     ],
+  //     surfaceIds: [1, 2, 3, 4, 5, 6],
+  //     usesProvoking: true,
+  //   };
   
-    return result;
-  }
+  //   return result;
+  // }
   
 
 
@@ -312,8 +312,8 @@ export async function initJoelGame() {
     }
     return holds;
   }
-  // _stk.pop();
   //get hold catch points
+  // to do add to data:
   const holdCatchPoints = getHoldCatchPoints();
   function getHoldCatchPoints(): V3[]{
     let catchPoints: V3[] = [];
@@ -322,6 +322,8 @@ export async function initJoelGame() {
     }
     return catchPoints;
   }
+
+  
   // for(let i=0;i<11;i++){
   //   const hold = EM.mk();
   //   EM.set(hold, RenderableConstructDef, TetraMesh);
@@ -671,22 +673,22 @@ export async function initJoelGame() {
     // updateHoldColors(dataArr,1);
   }
 
-  function updateHoldColors(dataArr:Uint8Array, band: number){
-    if(dataArr[band]!==0){
-      if(holds[0].color[1] > 0.29 && holds[0].color[1] < 0.3){
-        for(let i = 0;i<holds.length-1;i++){
-          // EM.set(holds[i],ColorDef,ENDESGA16.blue);
-          holds[i].color[1] = 0.04;
-        }
-      }
-      else{
-        for(let i = 0;i<holds.length-1;i++){
-          EM.set(holds[i],ColorDef,ENDESGA16.red);
-          holds[i].color[1] = 0.295;
-        }
-      }
-    }
-  }
+  // function updateHoldColors(dataArr:Uint8Array, band: number){
+  //   if(dataArr[band]!==0){
+  //     if(holds[0].color[1] > 0.29 && holds[0].color[1] < 0.3){
+  //       for(let i = 0;i<holds.length-1;i++){
+  //         // EM.set(holds[i],ColorDef,ENDESGA16.blue);
+  //         holds[i].color[1] = 0.04;
+  //       }
+  //     }
+  //     else{
+  //       for(let i = 0;i<holds.length-1;i++){
+  //         EM.set(holds[i],ColorDef,ENDESGA16.red);
+  //         holds[i].color[1] = 0.295;
+  //       }
+  //     }
+  //   }
+  // }
 
   function updateHoldColors2(){
     if(holds[0].color[1] > 0.29 && holds[0].color[1] < 0.3){
@@ -720,6 +722,7 @@ export async function initJoelGame() {
   const GRAVITY = .008
   const STICK_ITTERATIONS = 20;
   const WATER_STICK_ITTERATIONS = 10;
+  const WATER_MOTION = false;
   let waitCount = 60;
   // let fixedMoveCount = 65;
   let moveAmt = V(.006,-.1,.4);
@@ -896,22 +899,24 @@ export async function initJoelGame() {
       // }
     }
 
-    generateWave();
-    
-    for(let i=0; i<water.points.length; i++){
-      for(let j=0; j<water.points[0].length; j++){
-        const point = water.points[i][j];
-        if(point.fixed){
-          continue
-        }
-        else{
-          const nextPrevPosition = J3.clone(point.position);
-          V3.add(V3.sub(point.position,point.prevPosition,point.prevPosition),point.position, point.position);
-          // point.position[2] -= GRAVITY;
-          // V3.add(V(0,0,GRAVITY),point.position, point.position)
-          // J3.copy(point.prevPosition, nextPrevPosition);
-          point.prevPosition = nextPrevPosition;
+    if(WATER_MOTION){
+      generateWave();
+      
+      for(let i=0; i<water.points.length; i++){
+        for(let j=0; j<water.points[0].length; j++){
+          const point = water.points[i][j];
+          if(point.fixed){
+            continue
+          }
+          else{
+            const nextPrevPosition = J3.clone(point.position);
+            V3.add(V3.sub(point.position,point.prevPosition,point.prevPosition),point.position, point.position);
+            // point.position[2] -= GRAVITY;
+            // V3.add(V(0,0,GRAVITY),point.position, point.position)
+            // J3.copy(point.prevPosition, nextPrevPosition);
+            point.prevPosition = nextPrevPosition;
 
+          }
         }
       }
     }
@@ -1041,7 +1046,9 @@ export async function initJoelGame() {
     // if (false)
     // const _stk = tmpStack();
     updateSticks(sticks,STICK_ITTERATIONS);
-    updateSticks(water.sticks, WATER_STICK_ITTERATIONS);
+    if(WATER_MOTION){
+      updateSticks(water.sticks, WATER_STICK_ITTERATIONS);
+    }
     function updateSticks(sticks: Stick[], itterations: number){
       for(let i = 0; i<itterations;i++){
         const randArr = randomOrderArray(sticks.length);
@@ -1095,8 +1102,9 @@ export async function initJoelGame() {
       }
     }
 
-    water.object.renderable.meshHandle.pool.updateMeshVertices(water.object.renderable.meshHandle,water.mesh);
-
+    if(WATER_MOTION){
+      water.object.renderable.meshHandle.pool.updateMeshVertices(water.object.renderable.meshHandle,water.mesh);
+    }
 
     // if(fixedMoveCount === -5){
     //   fixedMoveCount--;
