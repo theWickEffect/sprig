@@ -472,14 +472,20 @@ export async function initJoelGame() {
   let bodyPoints: Point[] = [];
 
   //left hand
-  let lh = mkGCPoint(V(-4.2,0,5), .2, true);
+  let lh = mkGCPoint(V(-4.2,0,5.2), .2, true);
   bodyPoints.push(lh)
+  //left elbow
+  let le = mkGCPoint(V(-4.2,0,4.6), .05);
+  bodyPoints.push(le);
   //left shoulder
   let ls = mkGCPoint(V(-4.2,0,4));
   bodyPoints.push(ls);
   //right hand
-  let rh = mkGCPoint(V(-3.2,0,3));
+  let rh = mkGCPoint(V(-3.2,0,2.8));
   bodyPoints.push(rh);
+  //right elbow
+  let re = mkGCPoint(V(-3.2,0,3.4),.05);
+  bodyPoints.push(re);
   //right shoulder
   let rs = mkGCPoint(V(-3.2,0,4), .2, false);
   bodyPoints.push(rs);
@@ -521,8 +527,10 @@ export async function initJoelGame() {
   }
 
   let sticks: Stick[] = [
-    mkStick(lh,ls),
-    mkStick(rh,rs),
+    mkStick(lh,le),
+    mkStick(le,ls),
+    mkStick(re,rs),
+    mkStick(rh,re),
     mkStick(ls,rs),
     mkStick(ls,sternum),
     mkStick(rs,sternum),
@@ -634,7 +642,21 @@ export async function initJoelGame() {
     return mesh;
   }
 
-  
+  function generateWave(water: Water){
+    if(water.wave.sineUp){
+      water.wave.sinePos += (water.wave.sineMax - water.wave.sinePos) * water.wave.sineRatio;
+      if(water.wave.sinePos > water.wave.sineMax - .08){
+        water.wave.sineUp = false;
+      }
+    }
+    else{
+      water.wave.sinePos -= (water.wave.sinePos - water.wave.sineMin) * water.wave.sineRatio;
+      if(water.wave.sinePos < water.wave.sineMin + .1){
+        water.wave.sineUp = true;
+      }
+    }
+    water.wave.point.position[2] = water.wave.sinePos;
+  }
 
   // const waterMesh = mkWaterMesh(waterArr);
 
@@ -896,11 +918,11 @@ export async function initJoelGame() {
       // escapeCurrentHoldCount = ESCAPE_AMT;
     }
 
-    if(!mouseIsPressed && inputs.ldown){
+    if(!guy.jump.jump && !mouseIsPressed && inputs.ldown){
       mouseIsPressed = true;
       InitJump();
     }
-    else if(mouseIsPressed){
+    else if(!guy.jump.jump && mouseIsPressed){
       if(inputs.ldown){
         DragJump();
       }
@@ -910,30 +932,8 @@ export async function initJoelGame() {
       }
     }
 
-    function generateWave(){
-      if(water.wave.sineUp){
-        water.wave.sinePos += (water.wave.sineMax - water.wave.sinePos) * water.wave.sineRatio;
-        if(water.wave.sinePos > water.wave.sineMax - .08){
-          // to do: update external sineUp boolean
-          water.wave.sineUp = false;
-        }
-      }
-      else{
-        water.wave.sinePos -= (water.wave.sinePos - water.wave.sineMin) * water.wave.sineRatio;
-        if(water.wave.sinePos < water.wave.sineMin + .1){
-          // to do: update external sineUp boolean
-          water.wave.sineUp = true;
-        }
-      }
-      water.wave.point.position[2] = water.wave.sinePos;
-      // water.points[0][0].position[2] = water.wave.sinePos;
-      // for(let y = 0; y < water.points.length; y++){
-      //   water.points[y][0].position[2] = water.wave.sinePos;
-      // }
-    }
-
     if(WATER_MOTION){
-      generateWave();
+      generateWave(water);
       
       for(let i=0; i<water.points.length; i++){
         for(let j=0; j<water.points[0].length; j++){
@@ -954,7 +954,7 @@ export async function initJoelGame() {
       }
     }
     //update points and add gravity:
-    for(let point of bodyPoints){
+    for(let point of guy.points){
 
       if(DEBUG) console.log(inputs.mouseMov);
       // if (point.position===point.prevPosition){
@@ -1007,27 +1007,20 @@ export async function initJoelGame() {
     //function for updating "fixed" points: what happens to the fixed point each frame?
     //test:
     function fixedMoveUpdate(point: Point){
-      // let pos = V3.clone(V3.add(point.position,moveAmt,point.position))
-      // let pos = J3.add(point.position,moveAmt,false);
-      J3.add(point.position,moveAmt,false);
-      // EM.set(point.object,PositionDef,pos);
       J3.copy(point.prevPosition,point.position);
-      // point.prevPosition = pos;
+      J3.add(point.position,moveAmt,false);
       moveAmt[2]-=GRAVITY;
-      // point.position = pos;
     }
     
     function InitJump(){
-      inputs.ldown
+      // inputs.ldown
       mouseIsPressed = true;
+
       mouseStart[0] = 0;
       mouseStart[1] = 0;
       mousePosition[0] = 0;
       mousePosition[1] = 0;
-      // mouseStart[0] = inputs.mousePos[0];
-      // mouseStart[1] = inputs.mousePos[1];
-      //shouldn't be necesary:
-      // holdHand.fixed = true;
+  
       guy.jumpHand.position[0] = guy.holdHand.position[0];
       guy.jumpHand.position[1] = guy.holdHand.position[1];
       guy.jumpHand.position[2] = guy.holdHand.position[2];
@@ -1035,6 +1028,7 @@ export async function initJoelGame() {
       // jumpHand.position = V3.clone(holdHand.position);
       // jumpHand.fixed = true;
     }
+
     function DragJump(){
       //
       // mousePosition = inputs.mousePos;
@@ -1052,23 +1046,20 @@ export async function initJoelGame() {
       guy.jumpHand.fixed = true;
       guy.holdHand.fixed = false;
     }
-    // function catchHold(){
-    //   jump = false;
-    //   const temp = jumpHand;
-    //   jumpHand = holdHand;
-    //   holdHand = jumpHand;
-    // }
+    
     function checkForHoldColision(): boolean{
       for(const catchPoint of holdCatchPoints){
         if(J3.dist(guy.jumpHand.position,catchPoint) < guy.jump.catchAcuracy){
           J3.copy(guy.jumpHand.position, catchPoint);
           // jumpHand.position = V3.clone(catchPoint);
-          guy.jumpHand.prevPosition = guy.jumpHand.position;
+          // guy.jumpHand.prevPosition = guy.jumpHand.position;
+          J3.copy(guy.jumpHand.prevPosition,guy.jumpHand.position);
           const temp = guy.jumpHand;
           guy.jumpHand = guy.holdHand;
           guy.holdHand = temp;
           guy.jump.jump = false;
           guy.jump.escapeCount = guy.jump.escapeAmt;
+          return true;
         }
       }
       return false;
@@ -1159,7 +1150,7 @@ export async function initJoelGame() {
       assert(audioGraph.analyser);
       audioGraph.analyser?.getByteFrequencyData(freqDataArr);
       let controll = holdChangeControl(amplitudeArr,freqDataArr, 9);
-      console.log(controll);
+      // console.log(controll);
       if(colorChangeCount> COLOR_CHANGE_OPEN && controll){
         colorChangeCount = 0;
         updateHoldColors2(); 
