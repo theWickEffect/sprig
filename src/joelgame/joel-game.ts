@@ -794,7 +794,7 @@ export async function initJoelGame() {
       scale: .004,
       outScale: -.15,
       catchAcuracy: 1.75,
-      armStretchScale: .02,
+      armStretchScale: .016,
       escapeAmt: 10,
       escapeCount: 10,
       jump: false
