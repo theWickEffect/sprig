@@ -729,22 +729,55 @@ export async function initJoelGame() {
   let mouseIsPressed = false;
   let mouseStart = V(0,0);
   let mousePosition = V(0,0);
-  let holdHand = lh;
-  let jumpHand = rh;
-  const JUMP_SCALE = .004;
-  let jump = false;
-  const ESCAPE_AMT = 10;
-  let escapeCurrentHoldCount = ESCAPE_AMT;
-  const JUMP_OUT_SCALE = -.15;
-  const CATCH_ACURACY = 1.75;
-  const ARM_STRETCH_SCALE = .02;
+  // let holdHand = lh;
+  // let jumpHand = rh;
+  // const JUMP_SCALE = .004;
+  // let jump = false;
+  // const ESCAPE_AMT = 10;
+  // let escapeCurrentHoldCount = ESCAPE_AMT;
+  // const JUMP_OUT_SCALE = -.15;
+  // const CATCH_ACURACY = 1.75;
+  // const ARM_STRETCH_SCALE = .02;
   // const GUY_START = holds[0].position;
-  let started: boolean = false;
+  let gameStarted: boolean = false;
   const CAMERA_OFFSET = V(0,-20,3);
   let cameraPosition = J3.add(CAMERA_OFFSET,GUY_LH_START);
   const CAMERA_SPEED = .01;
   const amplitudeArr: number[] = [100,100,100,100,100,100,100,100,100];
   let maxAmp = 100;
+
+  interface GuyData{
+    jumpHand: Point;
+    holdHand: Point;
+    points: Point[];
+    sticks: Stick[];
+    jump: JumpData;
+  }
+  interface JumpData{
+    scale: number;
+    outScale: number;
+    catchAcuracy: number;
+    armStretchScale: number;
+    escapeAmt: number;
+    escapeCount: number;
+    jump: boolean;
+  }
+
+  const guy: GuyData = {
+    jumpHand: rh,
+    holdHand: lh,
+    points: bodyPoints,
+    sticks: sticks,
+    jump: {
+      scale: .004,
+      outScale: -.15,
+      catchAcuracy: 1.75,
+      armStretchScale: .02,
+      escapeAmt: 10,
+      escapeCount: 10,
+      jump: false
+    }
+  }
 
   function getMax(arr: number[]): number{
     let max = arr[0];
@@ -813,21 +846,21 @@ export async function initJoelGame() {
   EM.set(cam, RenderableConstructDef, CubeMesh, true);
 
   function startGame(){
-    jumpHand.fixed = false;
-    holdHand.fixed = true;
-    jump = false;
-    J3.copy(holdHand.position, GUY_LH_START)
-    J3.copy(holdHand.prevPosition, holdHand.position);
+    guy.jumpHand.fixed = false;
+    guy.holdHand.fixed = true;
+    guy.jump.jump = false;
+    J3.copy(guy.holdHand.position, GUY_LH_START)
+    J3.copy(guy.holdHand.prevPosition, guy.holdHand.position);
     // holdHand.position = J3.clone(GUY_LH_START);
     // holdHand.prevPosition= holdHand.position;
-    escapeCurrentHoldCount = ESCAPE_AMT;
+    guy.jump.escapeCount = guy.jump.escapeAmt;
   }
   //update points and sticks each frame:
   EM.addSystem("stickAndPoint",Phase.GAME_WORLD,[],[InputsDef],(_, {inputs})=>{
     // const _stk = tmpStack();
     //init game
-    if(!started){
-      started = true;
+    if(!gameStarted){
+      gameStarted = true;
       startGame();
     } 
 
@@ -844,7 +877,7 @@ export async function initJoelGame() {
     // if(audioElement && audioElement.)
 
     //calculate change to camera position
-    const camTargetPos = J3.add(holdHand.position,CAMERA_OFFSET);
+    const camTargetPos = J3.add(guy.holdHand.position,CAMERA_OFFSET);
     let camMovement = J3.sub(camTargetPos, cameraPosition);
     if(Math.abs(J3.len(camMovement)) > 1){
       J3.copy(cam.position,J3.add(cameraPosition,J3.scale(camMovement,CAMERA_SPEED,false),false));
@@ -928,10 +961,10 @@ export async function initJoelGame() {
       //   point.prevPosition = V3.copy(point.prevPosition, V3.add(point.prevPosition,V(-10,10,-10)));
       // }
       if(point.fixed){
-        if(jump){
+        if(guy.jump.jump){
           fixedMoveUpdate(point);
-          escapeCurrentHoldCount--;
-          if(escapeCurrentHoldCount<0){
+          guy.jump.escapeCount--;
+          if(guy.jump.escapeCount<0){
             checkForHoldColision();
             
           }
@@ -995,9 +1028,9 @@ export async function initJoelGame() {
       // mouseStart[1] = inputs.mousePos[1];
       //shouldn't be necesary:
       // holdHand.fixed = true;
-      jumpHand.position[0] = holdHand.position[0];
-      jumpHand.position[1] = holdHand.position[1];
-      jumpHand.position[2] = holdHand.position[2];
+      guy.jumpHand.position[0] = guy.holdHand.position[0];
+      guy.jumpHand.position[1] = guy.holdHand.position[1];
+      guy.jumpHand.position[2] = guy.holdHand.position[2];
       
       // jumpHand.position = V3.clone(holdHand.position);
       // jumpHand.fixed = true;
@@ -1007,17 +1040,17 @@ export async function initJoelGame() {
       // mousePosition = inputs.mousePos;
       mousePosition[0] += inputs.mouseMov[0];
       mousePosition[1] += inputs.mouseMov[1];
-      jumpHand.position[0]+= (mousePosition[0]-mouseStart[0]) * ARM_STRETCH_SCALE;
-      jumpHand.position[2]+= (mouseStart[1] - mousePosition[1]) * ARM_STRETCH_SCALE;
+      guy.jumpHand.position[0]+= (mousePosition[0]-mouseStart[0]) * guy.jump.armStretchScale;
+      guy.jumpHand.position[2]+= (mouseStart[1] - mousePosition[1]) * guy.jump.armStretchScale;
     }
     function ReleaseJump(){
       // mousePosition = inputs.mousePos;
-      moveAmt[0] = (mouseStart[0] - mousePosition[0]) * JUMP_SCALE;
-      moveAmt[2] = (mousePosition[1] - mouseStart[1]) * JUMP_SCALE;
-      moveAmt[1] = moveAmt[2] * JUMP_OUT_SCALE;
-      jump = true;
-      jumpHand.fixed = true;
-      holdHand.fixed = false;
+      moveAmt[0] = (mouseStart[0] - mousePosition[0]) * guy.jump.scale;
+      moveAmt[2] = (mousePosition[1] - mouseStart[1]) * guy.jump.scale;
+      moveAmt[1] = moveAmt[2] * guy.jump.outScale;
+      guy.jump.jump = true;
+      guy.jumpHand.fixed = true;
+      guy.holdHand.fixed = false;
     }
     // function catchHold(){
     //   jump = false;
@@ -1027,15 +1060,15 @@ export async function initJoelGame() {
     // }
     function checkForHoldColision(): boolean{
       for(const catchPoint of holdCatchPoints){
-        if(J3.dist(jumpHand.position,catchPoint) < CATCH_ACURACY){
-          J3.copy(jumpHand.position, catchPoint);
+        if(J3.dist(guy.jumpHand.position,catchPoint) < guy.jump.catchAcuracy){
+          J3.copy(guy.jumpHand.position, catchPoint);
           // jumpHand.position = V3.clone(catchPoint);
-          jumpHand.prevPosition = jumpHand.position;
-          const temp = jumpHand;
-          jumpHand = holdHand;
-          holdHand = temp;
-          jump = false;
-          escapeCurrentHoldCount = ESCAPE_AMT;
+          guy.jumpHand.prevPosition = guy.jumpHand.position;
+          const temp = guy.jumpHand;
+          guy.jumpHand = guy.holdHand;
+          guy.holdHand = temp;
+          guy.jump.jump = false;
+          guy.jump.escapeCount = guy.jump.escapeAmt;
         }
       }
       return false;
@@ -1187,7 +1220,7 @@ export async function initJoelGame() {
   }
 
   //calculate change to camera position
-  const camTargetPos = J3.add(holdHand.position,CAMERA_OFFSET);
+  const camTargetPos = J3.add(guy.holdHand.position,CAMERA_OFFSET);
   let camMovement = J3.sub(camTargetPos, cameraPosition);
   if(Math.abs(J3.len(camMovement)) > 1){
     J3.add(cameraPosition,J3.scale(camMovement,CAMERA_SPEED,false),false);
