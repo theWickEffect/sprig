@@ -4,11 +4,11 @@ import { ENDESGA16 } from "../color/palettes.js";
 import { ECS, EM } from "../ecs/ecs.js";
 import { V, V3, quat } from "../matrix/sprig-matrix.js";
 import { CubeMesh, HexMesh, PlaneMesh, TetraMesh } from "../meshes/mesh-list.js";
-import { HEX_AABB, makeSphere, mkCubeMesh, mkPointCloud, mkRectMesh } from "../meshes/primatives.js";
+import { HEX_AABB, makeDome, makeSphere, mkCubeMesh, mkPointCloud, mkRectMesh } from "../meshes/primatives.js";
 import { MeDef } from "../net/components.js";
 import { ColliderDef } from "../physics/collider.js";
 import { PositionDef, RotationDef, ScaleDef } from "../physics/transform.js";
-import { GRID_MASK } from "../render/pipeline-masks.js";
+import { GRID_MASK, SKY_MASK } from "../render/pipeline-masks.js";
 import { deferredPipeline } from "../render/pipelines/std-deferred.js";
 import { stdGridRender } from "../render/pipelines/std-grid.js";
 import {
@@ -35,6 +35,7 @@ import { ControllableDef } from "../input/controllable.js";
 import { LinearVelocityDef } from "../motion/velocity.js";
 import { NonupdatableComponentDef } from "../ecs/em-components.js";
 import { AudioGraph, buildFreqDataArray, configureAnalyser, createAudioGraph } from "./audio-code.js";
+import { skyPipeline } from "../render/pipelines/std-sky.js";
 
 const DBG_GHOST = false;
 const DEBUG = false;
@@ -124,8 +125,8 @@ export async function initJoelGame() {
       pointPipe,
       linePipe,
 
-      stdGridRender,
-
+      // stdGridRender,
+      skyPipeline,
       postProcess,
     ];
   });
@@ -157,6 +158,13 @@ export async function initJoelGame() {
       // color: [1, 1, 1],
     }
   );
+
+  const SKY_HALFSIZE = 1000;
+  const domeMesh = makeDome(16, 8, SKY_HALFSIZE);
+  const sky = EM.mk();
+  EM.set(sky, PositionDef, V(0, 0, -100));
+  const skyMesh = domeMesh;
+  EM.set(sky, RenderableConstructDef, skyMesh, undefined, undefined, SKY_MASK);
 
   // pedestal
   // const pedestal = EM.mk();
@@ -733,8 +741,8 @@ export async function initJoelGame() {
   
 
 
-  console.log("red: " + ENDESGA16.red);
-  console.log("orange: " + ENDESGA16.orange);
+  // console.log("red: " + ENDESGA16.red);
+  // console.log("orange: " + ENDESGA16.orange);
 
 
   //color stuff
