@@ -36,6 +36,7 @@ import { LinearVelocityDef } from "../motion/velocity.js";
 import { NonupdatableComponentDef } from "../ecs/em-components.js";
 import { AudioGraph, buildFreqDataArray, configureAnalyser, createAudioGraph } from "./audio-code.js";
 import { skyPipeline } from "../render/pipelines/std-sky.js";
+import { AssetBuilder } from "./palm-tree.js";
 
 const DBG_GHOST = false;
 const DEBUG = false;
@@ -330,6 +331,12 @@ export async function initJoelGame() {
     }
     return catchPoints;
   }
+
+  AssetBuilder.mkPalmTree();
+  // AssetBuilder.mkFrond(V(0,-10,6), V(5,-11,5));
+  // AssetBuilder.mkFrond(V(0,-10,6), V(4,-8,4.8));
+  // AssetBuilder.mkFrond(V(0,-10,6), V(-4,-13,5.7));
+  // AssetBuilder.mkFrond(V(0,-10,6), V(-4.8,-10,6.1));
 
   
   // for(let i=0;i<11;i++){
