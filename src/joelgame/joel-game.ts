@@ -185,6 +185,7 @@ export async function initJoelGame() {
     CLUSTER_VERT_OFFSET: number;
     CLUSTER_VERT_VAR: number;
     CLUSTER_SIZE: number;
+    hasTrees: boolean;
   }
 
   const world: worldParams = {
@@ -192,7 +193,8 @@ export async function initJoelGame() {
     wallWidth:20,
     CLUSTER_VERT_OFFSET: 3,
     CLUSTER_VERT_VAR: 5,
-    CLUSTER_SIZE: 4
+    CLUSTER_SIZE: 4,
+    hasTrees: true,
   }
   // const wallHeight = 40;
   // const wallWidth = 20;
@@ -332,7 +334,22 @@ export async function initJoelGame() {
     return catchPoints;
   }
 
-  AssetBuilder.mkPalmTree();
+  if(world.hasTrees){
+    AssetBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4,0,0));
+  }
+  // if(world.hasTrees && Math.random()>.8){
+  //   AssetBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4,0,0));
+  // }
+  if(world.hasTrees){
+    AssetBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * .5 + 1,0,0));
+  }
+  // if(Math.random()>.8){
+  //   AssetBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * .5 + 1,0,0));
+  // }
+
+  // AssetBuilder.mkRandPalmTree(V(world.wallWidth * -.5 - 3,0,0));
+  // AssetBuilder.mkRandPalmTree(V(world.wallWidth * .5 + 3,0,0));
+  // AssetBuilder.mkPalmTree();
   // AssetBuilder.mkFrond(V(0,-10,6), V(5,-11,5));
   // AssetBuilder.mkFrond(V(0,-10,6), V(4,-8,4.8));
   // AssetBuilder.mkFrond(V(0,-10,6), V(-4,-13,5.7));

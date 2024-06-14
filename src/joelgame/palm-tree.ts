@@ -1,26 +1,42 @@
 import { ColorDef } from "../color/color-ecs.js";
 import { ENDESGA16 } from "../color/palettes.js";
 import { EM } from "../ecs/ecs.js";
-import { V, V3, quat } from "../matrix/sprig-matrix.js";
+import { V, V3, mat4, quat } from "../matrix/sprig-matrix.js";
 import { HexMesh } from "../meshes/mesh-list.js";
-import { Mesh } from "../meshes/mesh.js";
+import { Mesh, RawMesh, transformMesh } from "../meshes/mesh.js";
 import { mkCubeMesh, mkTriangle } from "../meshes/primatives.js";
 import { PositionDef, RotationDef, ScaleDef } from "../physics/transform.js";
 import { RenderableConstructDef } from "../render/renderer-ecs.js";
+import { createEmptyMesh } from "../wood/wood.js";
 import { J3 } from "./joel-game.js";
 
 export module AssetBuilder{
-    export function mkPalmTree(top: V3 = V(0,-10,10),base: V3 = V(1,-8.5,0)){
+    export function mkRandPalmTree(base: V3, hasNuts:boolean = Math.random() > .18){
+        const treeMesh = createEmptyMesh("palmTree");
+        let top = V(0,0,0);
+        top[0] = base[0] + Math.random()*6 - 3;
+        top[1] = base[1] + Math.random()*6 - 3;
+        top[2] = base[2] + Math.random()*4 + 8.5;
         let trunkTop = J3.clone(top);
         trunkTop[2] -= .7;
-        mkTrunk(base, trunkTop);
-        mkFrond(top, V(5,-11,9));
-        mkFrond(top, V(4,-8,8.8));
-        mkFrond(top, V(-4,-13,9.7));
-        mkFrond(top, V(-4.8,-10,10.1));
-        mkNuts(top);
+        mkTrunk(treeMesh, base, trunkTop);
+        mkFrond(treeMesh, top, V(Math.random()*1+4.5+top[0],Math.random()*1-.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
+        mkFrond(treeMesh, top, V(Math.random()*1+3.5+top[0],Math.random()*1+1.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
+        mkFrond(treeMesh, top, V(Math.random()*1-4.5+top[0],Math.random()*1-3.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
+        mkFrond(treeMesh, top, V(Math.random()*1-5.3+top[0],Math.random()*1-.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
+        if(hasNuts) mkNuts(treeMesh, top);
     }
-    export function mkNuts(p: V3){
+    // export function mkPalmTree(treeMesh: RawMesh, top: V3 = V(0,-10,10),base: V3 = V(1,-8.5,0)){
+    //     let trunkTop = J3.clone(top);
+    //     trunkTop[2] -= .7;
+    //     mkTrunk(treeMesh, base, trunkTop);
+    //     mkFrond(treeMesh, top, V(5,-11,9));
+    //     mkFrond(treeMesh, top, V(4,-8,8.8));
+    //     mkFrond(treeMesh, top, V(-4,-13,9.7));
+    //     mkFrond(treeMesh, top, V(-4.8,-10,10.1));
+    //     mkNuts(treeMesh, top);
+    // }
+    export function mkNuts(treeMesh: RawMesh, p: V3){
         const downDist = .5;
         let p1 = J3.clone(p);
         let p2 = J3.clone(p);
@@ -31,20 +47,21 @@ export module AssetBuilder{
         p2[2] -= .1 + downDist;
         p2[0] += .3;
         p3[2] -= .6 + downDist;
-        mkNut(p1);
-        mkNut(p2);
-        mkNut(p3);
+        mkNut(treeMesh, p1);
+        mkNut(treeMesh, p2);
+        mkNut(treeMesh, p3);
     }
-    export function mkNut(p: V3){
+    export function mkNut(treeMesh: RawMesh, p: V3){
         const scale = .28;
         let nut = EM.mk();
+        transformMesh(mkCubeMesh(), mat4.fromRotationTranslationScale(quat.IDENTITY, p, [scale, scale, scale]))
         EM.set(nut, RenderableConstructDef, mkCubeMesh());
         EM.set(nut,ScaleDef,V(scale,scale,scale));
         EM.set(nut, PositionDef, p)
         EM.set(nut, ColorDef, ENDESGA16.darkBrown);
     }
     export function mkTrunk(
-        base: V3, top: V3, barkSpacing: number = .03, curveRatio: number = .1,
+        mesh: RawMesh, base: V3, top: V3, barkSpacing: number = .03, curveRatio: number = .1,
     ){
         const xLean = base[0] - top[0];
         const yLean = base[1] - top[1];
@@ -71,7 +88,7 @@ export module AssetBuilder{
             // EM.set(bark, RotationDef, quat.fromYawPitchRoll(0, 0, Math.PI));
         }
     }
-    export function mkFrond(startP: V3, endP: V3, leafSpacing:number = .02, curveRatio:number = .3){
+    export function mkFrond(treeMesh: RawMesh, startP: V3, endP: V3, curveRatio:number = .3, leafSpacing:number = .02){
         let leafLen = 1;
         const upOffset = curveRatio * J3.dist(startP,endP)
         let p1 = J3.add(J3.scale(startP,.9),J3.scale(endP,.1));
