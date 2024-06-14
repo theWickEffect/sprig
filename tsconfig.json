@@ -15,7 +15,7 @@
     /*todo(dz): sourceMap feature is frusterating to get working w/ debugging and browser source view. but necessary for correct stack traces.*/
     "sourceMap": true /* Generates corresponding '.map' file. */,
     // "outFile": "./",                       /* Concatenate and emit output to single file. */
-    "outDir": "./public/" /* Redirect output structure to the directory. */,
+    "outDir": "docs" /* Redirect output structure to the directory. */,
     "rootDir": "./src/" /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */,
     // "composite": true,                     /* Enable project compilation */
     // "tsBuildInfoFile": "./",               /* Specify file to store incremental compilation information */
@@ -66,5 +66,5 @@
     // "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
   },
-  "exclude": ["./npm-deps", "./public", "./docs"]
+  "exclude": ["./npm-deps", "docs", "./docs"]
 }
