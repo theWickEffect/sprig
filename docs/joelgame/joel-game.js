@@ -275,13 +275,13 @@ export async function initJoelGame() {
         TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4, 0, 0));
     }
     // if(world.hasTrees && Math.random()>.8){
-    //   AssetBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4,0,0));
+    //   TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4,0,0));
     // }
     if (world.hasTrees) {
         TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * .5 + 1, 0, 0));
     }
     // if(Math.random()>.8){
-    //   AssetBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * .5 + 1,0,0));
+    //   TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * .5 + 1,0,0));
     // }
     // AssetBuilder.mkRandPalmTree(V(world.wallWidth * -.5 - 3,0,0));
     // AssetBuilder.mkRandPalmTree(V(world.wallWidth * .5 + 3,0,0));
