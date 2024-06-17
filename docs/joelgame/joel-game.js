@@ -624,7 +624,6 @@ export async function initJoelGame() {
     let greenUp = true;
     let blueUp = false;
     function updateHoldColors(changeRate = .15, maxSaturation = .75) {
-        console.log(holds[0].color);
         const negChange = changeRate * -1;
         if (greenUp) {
             colorChange(1, changeRate);
@@ -662,7 +661,7 @@ export async function initJoelGame() {
     }
     function updateHoldColorsRand() {
         let randColor = [Math.random(), Math.random(), Math.random()];
-        for (let i = 0; i < holds.length; i++) {
+        for (let i = 0; i < holds.length - 1; i++) {
             holds[i].color[0] = randColor[0];
             holds[i].color[1] = randColor[1];
             holds[i].color[2] = randColor[2];
@@ -1041,7 +1040,7 @@ export async function initJoelGame() {
             // console.log(controll);
             if (colorChangeCount > COLOR_CHANGE_OPEN && controll) {
                 colorChangeCount = 0;
-                updateHoldColors();
+                updateHoldColorsRand();
             }
             // console.log(amplitudeArr[0]);
             // updateFreqAmpVisualiser(audioVisualiserArr,freqDataArr,audioGraph.analyser);
