@@ -306,7 +306,7 @@ export async function initJoelGame() {
       do{
         const hold = EM.mk();
         EM.set(hold, RenderableConstructDef, TetraMesh);
-        EM.set(hold, ColorDef, ENDESGA16.red);
+        EM.set(hold, ColorDef, V(.75,0,.01));
         const hor = Math.random()* world.CLUSTER_SIZE + cluster[0] - world.CLUSTER_SIZE / 2;
         const vert = Math.random()* world.CLUSTER_SIZE + cluster[2] - world.CLUSTER_SIZE / 2;
         const dep = (vert-(world.wallHeight/2)) * -.33;
@@ -334,7 +334,7 @@ export async function initJoelGame() {
     return catchPoints;
   }
 
-  if(world.hasTrees ){
+  if(world.hasTrees){
     TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4,0,0));
   }
   // if(world.hasTrees && Math.random()>.8){
@@ -743,21 +743,56 @@ export async function initJoelGame() {
   //     }
   //   }
   // }
-
-  function updateHoldColors2(){
-    if(holds[0].color[1] > 0.29 && holds[0].color[1] < 0.3){
-      for(let i = 0;i<holds.length-1;i++){
-        // EM.set(holds[i],ColorDef,ENDESGA16.blue);
-        holds[i].color[1] = 0.04;
+  let greenUp = true;
+  let blueUp = false;
+  function updateHoldColors(changeRate: number = .15, maxSaturation: number = .75){
+    console.log(holds[0].color );
+    const negChange = changeRate * -1;
+    if(greenUp){
+      colorChange(1,changeRate);
+      if(holds[0].color[1] > maxSaturation){
+        greenUp = false;
+      }
+    } 
+    else if(holds[0].color[1] > 0){
+      colorChange(1,negChange);
+      if(holds[0].color[1] === 0){
+        blueUp = true;
       }
     }
+    else if(blueUp){
+      colorChange(2,changeRate);
+      if(holds[0].color[2] > maxSaturation){
+        blueUp = false;
+      }
+    } 
     else{
-      for(let i = 0;i<holds.length-1;i++){
-        EM.set(holds[i],ColorDef,ENDESGA16.red);
-        holds[i].color[1] = 0.295;
+      colorChange(2,negChange);
+      if(holds[0].color[2] === 0){
+        greenUp = true;
+      }
+    }
+
+    function colorChange(colorIndex: 0 | 1 | 2, change: number){
+      let newColor = holds[0].color[colorIndex] + change
+      if(newColor < 0){
+        newColor = 0;
+      }
+      for(let i=0;i<holds.length-1; i++){
+        holds[i].color[colorIndex] = newColor;
       }
     }
   }
+
+  function updateHoldColorsRand(){
+    let randColor = [Math.random(), Math.random(), Math.random()];
+    for(let i=0;i<holds.length;i++){
+      holds[i].color[0] = randColor[0];
+      holds[i].color[1] = randColor[1];
+      holds[i].color[2] = randColor[2];
+    }
+  }
+
 
 
   // const audioVisualiserArr = buildFreqAmpVisualiser(freqDataArr.length,-10,0,5,ENDESGA16.darkRed);
@@ -1185,7 +1220,7 @@ export async function initJoelGame() {
       // console.log(controll);
       if(colorChangeCount> COLOR_CHANGE_OPEN && controll){
         colorChangeCount = 0;
-        updateHoldColors2(); 
+        updateHoldColors(); 
       }
       // console.log(amplitudeArr[0]);
       // updateFreqAmpVisualiser(audioVisualiserArr,freqDataArr,audioGraph.analyser);

@@ -140,6 +140,7 @@ function updateStdRenderData(o) {
         // TODO(@darzu): hidden stuff is a bit wierd
         mat4.fromScaling(V3.ZEROS, o.renderDataStd.transform);
     }
+    //to do change this function to keep track of an older value to compare.
     let tintChange = false;
     if (!o.renderable.hidden) {
         // color / tint
@@ -148,7 +149,7 @@ function updateStdRenderData(o) {
             V3.copy(o.renderDataStd.tint, o.color);
         if (TintsDef.isOn(o))
             applyTints(o.tints, o.renderDataStd.tint);
-        if (V3.sqrDist(prevTint, o.renderDataStd.tint) > 0.01)
+        if (V3.sqrDist(prevTint, o.renderDataStd.tint) > 0.001)
             tintChange = true;
         // apha
         if (AlphaDef.isOn(o)) {
