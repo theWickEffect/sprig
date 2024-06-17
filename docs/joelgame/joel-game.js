@@ -147,6 +147,7 @@ export async function initJoelGame() {
         CLUSTER_VERT_VAR: 5,
         CLUSTER_SIZE: 4,
         hasTrees: true,
+        wallColor: V(1, .1, 0),
     };
     // const wallHeight = 40;
     // const wallWidth = 20;
@@ -214,7 +215,7 @@ export async function initJoelGame() {
     //build wall
     const wall = EM.mk();
     EM.set(wall, RenderableConstructDef, mkRectMesh(world.wallWidth, 3, world.wallHeight));
-    EM.set(wall, ColorDef, ENDESGA16.darkBrown);
+    EM.set(wall, ColorDef, world.wallColor);
     EM.set(wall, PositionDef, V(0, 1.5, world.wallHeight / 2));
     EM.set(wall, RotationDef, quat.fromYawPitchRoll(0, Math.PI * .1, 0));
     // const wall2 = await EM.whenEntityHas(wall, RenderableDef);
