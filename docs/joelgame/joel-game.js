@@ -24,7 +24,7 @@ import { Phase } from "../ecs/sys-phase.js";
 import { InputsDef } from "../input/inputs.js";
 import { buildFreqDataArray, configureAnalyser, createAudioGraph } from "./audio-code.js";
 import { skyPipeline } from "../render/pipelines/std-sky.js";
-import { AssetBuilder } from "./palm-tree.js";
+import { TreeBuilder } from "./palm-tree.js";
 const DBG_GHOST = false;
 const DEBUG = false;
 // tmpStack()
@@ -272,13 +272,13 @@ export async function initJoelGame() {
         return catchPoints;
     }
     if (world.hasTrees) {
-        AssetBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4, 0, 0));
+        TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4, 0, 0));
     }
     // if(world.hasTrees && Math.random()>.8){
     //   AssetBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4,0,0));
     // }
     if (world.hasTrees) {
-        AssetBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * .5 + 1, 0, 0));
+        TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * .5 + 1, 0, 0));
     }
     // if(Math.random()>.8){
     //   AssetBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * .5 + 1,0,0));

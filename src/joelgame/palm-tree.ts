@@ -11,7 +11,7 @@ import { assert } from "../utils/util-no-import.js";
 import { createEmptyMesh } from "../wood/wood.js";
 import { J3 } from "./joel-game.js";
 
-export module AssetBuilder{
+export module TreeBuilder{
     export function mkRandPalmTree(base: V3, hasNuts:boolean = Math.random() > .1){
         const treeMesh = createEmptyMesh("palmTree");
         treeMesh.surfaceIds = [];
@@ -21,12 +21,12 @@ export module AssetBuilder{
         top[2] = base[2] + Math.random()*4 + 8.5;
         let trunkTop = J3.clone(top);
         trunkTop[2] -= .7;
-        if(hasNuts) mkNuts(treeMesh, top);
-        mkTrunk(treeMesh, base, trunkTop);
-        mkFrond(treeMesh, top, V(Math.random()*1+4.5+top[0],Math.random()*1-.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
-        mkFrond(treeMesh, top, V(Math.random()*1+3.5+top[0],Math.random()*1+1.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
-        mkFrond(treeMesh, top, V(Math.random()*1-4.5+top[0],Math.random()*1-3.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
-        mkFrond(treeMesh, top, V(Math.random()*1-5.3+top[0],Math.random()*1-.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
+        if(hasNuts) mkNuts(top);
+        mkTrunk(base, trunkTop);
+        mkFrond(top, V(Math.random()*1+4.5+top[0],Math.random()*1-.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
+        mkFrond(top, V(Math.random()*1+3.5+top[0],Math.random()*1+1.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
+        mkFrond(top, V(Math.random()*1-4.5+top[0],Math.random()*1-3.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
+        mkFrond(top, V(Math.random()*1-5.3+top[0],Math.random()*1-.5+top[1],Math.random()*4-2.2+top[2]), Math.random()*.1+.25);
         
         const treeMeshFinal = treeMesh as Mesh;
         treeMeshFinal.usesProvoking = true;
@@ -35,185 +35,156 @@ export module AssetBuilder{
         const tree  = EM.mk();
         EM.set(tree, RenderableConstructDef,treeMeshFinal);
         EM.set(tree, PositionDef, V(0,0,0));
-    }
-    // export function mkPalmTree(treeMesh: RawMesh, top: V3 = V(0,-10,10),base: V3 = V(1,-8.5,0)){
-    //     let trunkTop = J3.clone(top);
-    //     trunkTop[2] -= .7;
-    //     mkTrunk(treeMesh, base, trunkTop);
-    //     mkFrond(treeMesh, top, V(5,-11,9));
-    //     mkFrond(treeMesh, top, V(4,-8,8.8));
-    //     mkFrond(treeMesh, top, V(-4,-13,9.7));
-    //     mkFrond(treeMesh, top, V(-4.8,-10,10.1));
-    //     mkNuts(treeMesh, top);
-    // }
-    export function mkNuts(treeMesh: RawMesh, p: V3){
-        const downDist = .5;
-        let p1 = J3.clone(p);
-        let p2 = J3.clone(p);
-        let p3 = J3.clone(p);
-        p1[0] -= .31;
-        p1[1] -= .12;
-        p1[2] -= downDist;
-        p2[2] -= .1 + downDist;
-        p2[0] += .3;
-        p3[2] -= .6 + downDist;
-        mkNut(treeMesh, p1);
-        mkNut(treeMesh, p2);
-        mkNut(treeMesh, p3);
-    }
-    export function mkNut(treeMesh: RawMesh, p: V3){
-        const scale = .28;
-        const firstVI = treeMesh.pos.length
-        treeMesh.pos.push(
-            V(+scale, +scale, +scale),
-            V(-scale, +scale, +scale),
-            V(-scale, -scale, +scale),
-            V(+scale, -scale, +scale),
-        
-            V(+scale, +scale, -scale),
-            V(-scale, +scale, -scale),
-            V(-scale, -scale, -scale),
-            V(+scale, -scale, -scale),
-        );
-        for(let vi = firstVI; vi<firstVI+8; vi++){
-            J3.add(treeMesh.pos[vi],p,false)
+
+        function mkNuts(p: V3){
+            const downDist = .5;
+            let p1 = J3.clone(p);
+            let p2 = J3.clone(p);
+            let p3 = J3.clone(p);
+            p1[0] -= .31;
+            p1[1] -= .12;
+            p1[2] -= downDist;
+            p2[2] -= .1 + downDist;
+            p2[0] += .3;
+            p3[2] -= .6 + downDist;
+            mkNut(p1);
+            mkNut(p2);
+            mkNut(p3);
         }
-        const firstQI = treeMesh.quad.length;
-        treeMesh.quad.push(
-            // +Z
-            V(0, 1, 2, 3),
-            // +Y
-            V(4, 5, 1, 0),
-            // +X
-            V(3, 7, 4, 0),
-            // -X
-            V(2, 1, 5, 6),
-            // -Y
-            V(6, 7, 3, 2),
-            // -Z
-            V(5, 4, 7, 6),
-        );
-        assert(treeMesh.surfaceIds);
-        let sid = treeMesh.surfaceIds.length;
-        for(let qi = firstQI; qi<firstQI+6; qi++){
-            treeMesh.quad[qi][0]+=firstVI;
-            treeMesh.quad[qi][1]+=firstVI;
-            treeMesh.quad[qi][2]+=firstVI;
-            treeMesh.quad[qi][3]+=firstVI;
-            treeMesh.surfaceIds.push(sid);
-            sid++;
-            treeMesh.colors.push(ENDESGA16.darkBrown);
-        }
-
-        // mkCubeMesh()
-
-        // let nut = EM.mk();
-        // transformMesh(mkCubeMesh(), mat4.fromRotationTranslationScale(quat.IDENTITY, p, [scale, scale, scale]))
-        // EM.set(nut, RenderableConstructDef, mkCubeMesh());
-        // EM.set(nut,ScaleDef,V(scale,scale,scale));
-        // EM.set(nut, PositionDef, p)
-        // EM.set(nut, ColorDef, ENDESGA16.darkBrown);
-    }
-    export function mkTrunk(
-        treeMesh: RawMesh, base: V3, top: V3, barkSpacing: number = .03, curveRatio: number = .1,
-    ){
-        const xLean = base[0] - top[0];
-        const yLean = base[1] - top[1];
-        const treeLen = J3.dist(base,top);
-
-
-        let p1 = J3.add(J3.scale(base,.9),J3.scale(top,.1));
-        p1[0] += xLean * treeLen * curveRatio;
-        p1[1] += yLean * treeLen * curveRatio;
-        let p2 = J3.add(J3.scale(base,.1),J3.scale(top,.9));
-        p2[0] += xLean * treeLen * curveRatio;
-        p2[1] += yLean * treeLen * curveRatio;
-
-        const bezCurve = getBezCurveFunc(base,p1,p2,top);
-
-        for(let t = 0; t <= 1; t += barkSpacing){
-            const scale = (1-t) * .4 + .2;
-            const pt = bezCurve(t);
-            const firstVI = treeMesh.pos.length;
-            const A = Math.cos(Math.PI / 3);
-            const B = Math.sin(Math.PI / 3);
+        function mkNut(p: V3){
+            const scale = .28;
+            const firstVI = treeMesh.pos.length
             treeMesh.pos.push(
-                V(-1, +0, 1),
-                V(-A, +B, 1),
-                V(+A, +B, 1),
-                V(+1, +0, 1),
-                V(+A, -B, 1),
-                V(-A, -B, 1),
-                V(-1, +0, 0),
-                V(-A, +B, 0),
-                V(+A, +B, 0),
-                V(+1, +0, 0),
-                V(+A, -B, 0),
-                V(-A, -B, 0),
-            )
-            for(let vi = firstVI; vi < treeMesh.pos.length;vi++){
-                J3.add(J3.scale(treeMesh.pos[vi],scale,false),pt,false);
+                V(+scale, +scale, +scale),
+                V(-scale, +scale, +scale),
+                V(-scale, -scale, +scale),
+                V(+scale, -scale, +scale),
+            
+                V(+scale, +scale, -scale),
+                V(-scale, +scale, -scale),
+                V(-scale, -scale, -scale),
+                V(+scale, -scale, -scale),
+            );
+            for(let vi = firstVI; vi<firstVI+8; vi++){
+                J3.add(treeMesh.pos[vi],p,false)
             }
             const firstQI = treeMesh.quad.length;
             treeMesh.quad.push(
-                V(0,1,6,7),
-                V(1,2,7,8),
-                V(2,3,8,9),
-                V(3,4,9,10),
-                V(4,5,10,11),
-                V(5,0,11,6),
+                // +Z
+                V(0, 1, 2, 3),
+                // +Y
+                V(4, 5, 1, 0),
+                // +X
+                V(3, 7, 4, 0),
+                // -X
+                V(2, 1, 5, 6),
+                // -Y
+                V(6, 7, 3, 2),
+                // -Z
+                V(5, 4, 7, 6),
             );
             assert(treeMesh.surfaceIds);
             let sid = treeMesh.surfaceIds.length;
-            for(let qi = firstQI; qi<treeMesh.quad.length;qi++){
-                treeMesh.quad[qi][0] += firstVI;
-                treeMesh.quad[qi][1] += firstVI;
-                treeMesh.quad[qi][2] += firstVI;
-                treeMesh.quad[qi][3] += firstVI;
+            for(let qi = firstQI; qi<firstQI+6; qi++){
+                treeMesh.quad[qi][0]+=firstVI;
+                treeMesh.quad[qi][1]+=firstVI;
+                treeMesh.quad[qi][2]+=firstVI;
+                treeMesh.quad[qi][3]+=firstVI;
                 treeMesh.surfaceIds.push(sid);
                 sid++;
-                treeMesh.colors.push(V(0,0,0));
+                treeMesh.colors.push(ENDESGA16.darkBrown);
             }
-  
-            // const bark = EM.mk();
-            // EM.set(bark, RenderableConstructDef, HexMesh);
-            // EM.set(bark,ScaleDef,V(scale,scale,scale));
-            // EM.set(bark, PositionDef, pt)
-            // EM.set(bark, ColorDef, ENDESGA16.lightBrown);
-            // EM.set(bark, RotationDef, quat.fromYawPitchRoll(0, 0, Math.PI));
         }
-    }
-    export function mkFrond(treeMesh: RawMesh, startP: V3, endP: V3, curveRatio:number = .3, leafSpacing:number = .02){
-        let leafLen = 1;
-        const upOffset = curveRatio * J3.dist(startP,endP)
-        let p1 = J3.add(J3.scale(startP,.9),J3.scale(endP,.1));
-        p1[2]+= upOffset;
-        let p2 = J3.add(J3.scale(startP,.1),J3.scale(endP,.9));
-        p2[2]+= upOffset;
-        const bezCurve = getBezCurveFunc(startP,p1,p2,endP);
-        
-        for(let t = 0; t <= 1; t += leafSpacing){
-            const pt = bezCurve(t);
-            const leaf = EM.mk();
-            EM.set(leaf, RenderableConstructDef, mkLeaf());
-            EM.set(leaf,ScaleDef,V(leafLen,leafLen,leafLen));
-            EM.set(leaf, PositionDef, pt)
-            EM.set(leaf, ColorDef, ENDESGA16.lightGreen);
-            EM.set(leaf, RotationDef, quat.fromYawPitchRoll(0, 0, Math.PI));
-        }
-        
-    }
-    export const mkLeaf: () => Mesh = () => ({
-        dbgName: "leaf",
-        pos: [V(0, 0, 0), V(.1, 0, 0), V(0, 0, 1)],
-        tri: [V(0, 1, 2), V(2, 1, 0)],
-        quad: [],
-        lines: [],
-        colors: [V(0, 0, 0), V(0, 0, 0)],
-        surfaceIds: [1, 2],
-        usesProvoking: true,
-      });
+        function mkTrunk(
+            base: V3, top: V3, barkSpacing: number = .03, curveRatio: number = .1,
+        ){
+            const xLean = base[0] - top[0];
+            const yLean = base[1] - top[1];
+            const treeLen = J3.dist(base,top);
 
+
+            let p1 = J3.add(J3.scale(base,.9),J3.scale(top,.1));
+            p1[0] += xLean * treeLen * curveRatio;
+            p1[1] += yLean * treeLen * curveRatio;
+            let p2 = J3.add(J3.scale(base,.1),J3.scale(top,.9));
+            p2[0] += xLean * treeLen * curveRatio;
+            p2[1] += yLean * treeLen * curveRatio;
+
+            const bezCurve = getBezCurveFunc(base,p1,p2,top);
+
+            for(let t = 0; t <= 1; t += barkSpacing){
+                const scale = (1-t) * .4 + .2;
+                const pt = bezCurve(t);
+                const firstVI = treeMesh.pos.length;
+                const A = Math.cos(Math.PI / 3);
+                const B = Math.sin(Math.PI / 3);
+                treeMesh.pos.push(
+                    V(-1, +0, 1),
+                    V(-A, +B, 1),
+                    V(+A, +B, 1),
+                    V(+1, +0, 1),
+                    V(+A, -B, 1),
+                    V(-A, -B, 1),
+                    V(-1, +0, 0),
+                    V(-A, +B, 0),
+                    V(+A, +B, 0),
+                    V(+1, +0, 0),
+                    V(+A, -B, 0),
+                    V(-A, -B, 0),
+                )
+                for(let vi = firstVI; vi < treeMesh.pos.length;vi++){
+                    J3.add(J3.scale(treeMesh.pos[vi],scale,false),pt,false);
+                }
+                const firstQI = treeMesh.quad.length;
+                treeMesh.quad.push(
+                    V(0,1,6,7),
+                    V(1,2,7,8),
+                    V(2,3,8,9),
+                    V(3,4,9,10),
+                    V(4,5,10,11),
+                    V(5,0,11,6),
+                );
+                assert(treeMesh.surfaceIds);
+                let sid = treeMesh.surfaceIds.length;
+                for(let qi = firstQI; qi<treeMesh.quad.length;qi++){
+                    treeMesh.quad[qi][0] += firstVI;
+                    treeMesh.quad[qi][1] += firstVI;
+                    treeMesh.quad[qi][2] += firstVI;
+                    treeMesh.quad[qi][3] += firstVI;
+                    treeMesh.surfaceIds.push(sid);
+                    sid++;
+                    treeMesh.colors.push(V(0,0,0));
+                }
+            }
+        }
+        function mkFrond(startP: V3, endP: V3, curveRatio:number = .3, leafSpacing:number = .02){
+            let leafLen = 1;
+            const upOffset = curveRatio * J3.dist(startP,endP)
+            let p1 = J3.add(J3.scale(startP,.9),J3.scale(endP,.1));
+            p1[2]+= upOffset;
+            let p2 = J3.add(J3.scale(startP,.1),J3.scale(endP,.9));
+            p2[2]+= upOffset;
+            const bezCurve = getBezCurveFunc(startP,p1,p2,endP);
+            
+            for(let t = 0; t <= 1; t += leafSpacing){
+                mkLeaf(bezCurve(t), leafLen);
+            }
+        }
+
+        function mkLeaf(p: V3, leafLen: number){
+            const firstVI = treeMesh.pos.length;
+            treeMesh.pos.push(
+                V(p[0] - .08, p[1], p[2]),
+                V(p[0] + .08, p[1], p[2]),
+                V(p[0],p[1],p[2] - leafLen)
+            );
+            treeMesh.tri.push(V(firstVI+1,firstVI,firstVI+2));
+            treeMesh.colors.push(V(.05+(Math.random()*.1),.8+(Math.random()*.5),.0));
+            assert(treeMesh.surfaceIds);
+            treeMesh.surfaceIds.push(treeMesh.surfaceIds[treeMesh.surfaceIds.length-1]+1);
+        }
+    }
+    
     export function getBezCurveFunc(p0: V3, p1: V3, p2: V3, p3: V3): (t: number) => V3{
         return function (t: number): V3{
             const t2 = t*t;
