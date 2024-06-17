@@ -792,6 +792,15 @@ export async function initJoelGame() {
     }
   }
 
+  function updateHoldColorsAllRand(){
+    for(let i=0;i<holds.length-1;i++){
+      holds[i].color[0] = Math.random();
+      holds[i].color[1] = Math.random();
+      holds[i].color[2] = Math.random();
+    }
+  }
+
+
 
 
   // const audioVisualiserArr = buildFreqAmpVisualiser(freqDataArr.length,-10,0,5,ENDESGA16.darkRed);
@@ -1260,7 +1269,7 @@ export async function initJoelGame() {
 
 
   // gizmo
-  addWorldGizmo(V(-20, 0, 0), 5);
+  // addWorldGizmo(V(-20, 0, 0), 5);
 
 
   // line test

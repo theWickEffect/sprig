@@ -17,7 +17,6 @@ import { postProcess } from "../render/pipelines/std-post.js";
 import { shadowPipelines } from "../render/pipelines/std-shadow.js";
 import { RendererDef, RenderableConstructDef, RenderableDef } from "../render/renderer-ecs.js";
 import { sketchLine } from "../utils/sketch.js";
-import { addWorldGizmo } from "../utils/utils-game.js";
 import { createObj } from "../ecs/em-objects.js";
 import { createSun, initGhost } from "../graybox/graybox-helpers.js";
 import { Phase } from "../ecs/sys-phase.js";
@@ -667,6 +666,13 @@ export async function initJoelGame() {
             holds[i].color[2] = randColor[2];
         }
     }
+    function updateHoldColorsAllRand() {
+        for (let i = 0; i < holds.length - 1; i++) {
+            holds[i].color[0] = Math.random();
+            holds[i].color[1] = Math.random();
+            holds[i].color[2] = Math.random();
+        }
+    }
     // const audioVisualiserArr = buildFreqAmpVisualiser(freqDataArr.length,-10,0,5,ENDESGA16.darkRed);
     // for(let i=0;i<audioVisualiserArr.length;i++) assert(audioVisualiserArr[i].object)
     // console.log("red: " + ENDESGA16.red);
@@ -1064,7 +1070,7 @@ export async function initJoelGame() {
     // let rightFixed = true;
     // const rhLoc = hangPoint;
     // gizmo
-    addWorldGizmo(V(-20, 0, 0), 5);
+    // addWorldGizmo(V(-20, 0, 0), 5);
     // line test
     // sketch({
     //   shape: "line",
