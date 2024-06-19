@@ -8,6 +8,78 @@ import { createEmptyMesh } from "../wood/wood.js";
 import { J3 } from "./joel-game.js";
 export var TreeBuilder;
 (function (TreeBuilder) {
+    function mkIsland(wallWidth = 20, islandXRunby = 5, islandDepth = 12, wallGroundY = 2, islandHeight = 1.5, islandColor = V(.7, .2, .01)) {
+        const mesh = createEmptyMesh("island");
+        mesh.surfaceIds = [];
+        const islandMesh = mesh;
+        islandMesh.usesProvoking = true;
+        const zStart = -.3;
+        const zMax = islandHeight;
+        let z = zStart;
+        const zRamp = 3;
+        const zIncrement = (zMax - zStart) / zRamp;
+        let xEnd = wallWidth / 2 + islandXRunby;
+        let xStart = xEnd * -1;
+        let endOffset = 0;
+        let frontStart = -1;
+        let frontEnd = -1;
+        let backStart = -1;
+        let backEnd = -1;
+        for (let y = 0; y < islandDepth / 2; y++) {
+            if (y > islandDepth / 2 - 3) {
+                xStart += 2;
+                xEnd -= 2;
+                endOffset += 2;
+            }
+            let vi = islandMesh.pos.length;
+            for (let x = xStart; x <= xEnd; x++) {
+                islandMesh.pos.push(V(x, y, z + (Math.random() * .3)));
+                if (x < xStart + zRamp)
+                    z += zIncrement;
+                if (x >= xEnd - zRamp)
+                    z -= zIncrement;
+            }
+            if (y === 0) {
+                frontStart = 0;
+                backStart = 0;
+                frontEnd = islandMesh.pos.length - 1;
+                backEnd = frontEnd;
+            }
+            else {
+                let frontIndex = frontStart;
+                for (let v = vi; v < islandMesh.pos.length; v++) {
+                    if (v === vi && endOffset > 0) {
+                        while (frontIndex < frontStart + endOffset) {
+                            islandMesh.tri.push(V(frontIndex + 1, frontIndex, v));
+                            frontIndex++;
+                        }
+                    }
+                    if (v < islandMesh.pos.length - 1) {
+                        islandMesh.tri.push(V(frontIndex, v, v + 1), V(frontIndex + 1, frontIndex, v));
+                        frontIndex++;
+                    }
+                    else {
+                        while (frontIndex < frontEnd) {
+                            islandMesh.tri.push(V(frontIndex + 1, frontIndex, v));
+                            frontIndex++;
+                        }
+                    }
+                }
+            }
+        }
+        for (let i = 0; i < islandMesh.tri.length; i++) {
+            const color = J3.clone(islandColor);
+            color[0] += Math.random() * .1;
+            color[1] += Math.random() * .1;
+            color[2] += Math.random() * .1;
+            islandMesh.colors.push(color);
+            islandMesh.surfaceIds.push(1);
+        }
+        const island = EM.mk();
+        EM.set(island, RenderableConstructDef, islandMesh);
+        EM.set(island, PositionDef, V(0, 0, 0));
+    }
+    TreeBuilder.mkIsland = mkIsland;
     function mkRandPalmTree(base, hasNuts = Math.random() > .1) {
         const treeMesh = createEmptyMesh("palmTree");
         treeMesh.surfaceIds = [];
