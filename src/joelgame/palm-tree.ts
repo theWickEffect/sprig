@@ -12,6 +12,84 @@ import { createEmptyMesh } from "../wood/wood.js";
 import { J3 } from "./joel-game.js";
 
 export module TreeBuilder{
+    export function mkIsland2(
+        xWid: number = 40, 
+        yDep: number = 25, 
+        zHt: number = 3, 
+        pos: V3 = V(0,0,0),
+        color: V3 = V(.7,.2,0),
+        ){
+        const verts: V3[][] = [];
+        for(let y = 0; y < yDep; y++){
+            const nextVerts: V3[] = []
+            for(let x = 0; x < xWid; x++){
+                if(x===0 || y===0 || x===xWid-1 || y===yDep-1){
+                    nextVerts.push(V(x,y,0));
+                }
+                else nextVerts.push(V(x,y,zHt));
+            }
+            verts.push(nextVerts);
+        }
+        verts[0][0][2] = -8;
+        verts[0][verts[0].length-1][2] = -7;
+        verts[verts.length-1][0][2] = -6;
+        verts[verts.length-1][verts[0].length-1][2] = -7;
+
+        for(let y = 0; y < verts.length/2; y++){
+            const y2 = verts.length-1-y;
+            for(let x = 0; x < verts[0].length/2; x++){
+                const x2 = verts[0].length-1-x;
+                htUpdate(y,x);
+                htUpdate(y,x2);
+                htUpdate(y2,x2);
+                htUpdate(y2, x);
+            }
+        }
+
+        const mesh = createEmptyMesh("island");
+        mesh.surfaceIds = [];
+        const islandMesh = mesh as Mesh;
+        islandMesh.usesProvoking = true;
+
+        for(let y = 0; y < verts.length; y++){
+            for(let x = 0; x < verts[0].length; x++){
+                islandMesh.pos.push(verts[y][x]);
+                if(y>0 && x>0){
+                    const vtl = (y-1) * verts.length + x-1;
+                    const vtr = (y-1) * verts.length + x;
+                    const vbr = y * verts.length + x;
+                    const vbl = y * verts.length + x - 1;
+                    islandMesh.tri.push(V(vtl,vtr,vbr), V(vtl,vbr,vbl))
+                }
+            }
+        }
+
+        for(let i = 0; i < islandMesh.tri.length; i++){
+            const nextColor = J3.clone(color);
+            nextColor[0]+= Math.random() * .1;
+            nextColor[1]+= Math.random() * .1;
+            nextColor[2]+= Math.random() * .1;
+            islandMesh.colors.push(nextColor);
+            islandMesh.surfaceIds.push(1);
+        }
+
+        const island = EM.mk();
+        EM.set(island, RenderableConstructDef,islandMesh);
+        EM.set(island, PositionDef, pos);
+        console.log("island 2");
+
+
+        function htUpdate(y: number, x: number){
+            let z = verts[y][x][2];
+            if(y>0) z = Math.min(z,verts[y-1][x][2]+1);
+            if(y<verts.length-1) z = Math.min(z,verts[y+1][x][2]+1);
+            if(x>0) z = Math.min(z,verts[y][x-1][2]+1);
+            if(x<verts[0].length-1) z = Math.min(z,verts[y][x+1][2]+1);
+            z -= Math.random()*.1;
+            verts[y][x][2] = z;
+        }
+
+    }
     export function mkIsland(
         wallWidth: number  = 20, 
         islandXRunby: number = 5,
@@ -37,6 +115,7 @@ export module TreeBuilder{
         let frontEnd = -1;
         let backStart = -1;
         let backEnd = -1;
+        const backTempArr: V3[] = [];
         for (let y=0; y<islandDepth/2; y++){
             if(y>islandDepth/2 - 3){
                 xStart += 2;
@@ -46,6 +125,7 @@ export module TreeBuilder{
             let vi = islandMesh.pos.length;
             for(let x = xStart; x <= xEnd; x++){
                 islandMesh.pos.push(V(x,y,z+(Math.random()*.3)));
+                if(y !== 0) backTempArr.push(V(x,y*-1,z+(Math.random()*.3)))
                 if(x< xStart+zRamp) z += zIncrement;
                 if(x >= xEnd - zRamp) z -= zIncrement;
             }
@@ -75,6 +155,30 @@ export module TreeBuilder{
                         }
                     }
                 }
+                // let backIndex = backStart;
+                // vi = islandMesh.pos.length;
+                // for(let vert of backTempArr){
+                //     islandMesh.pos.push(vert);
+                // }
+                // while(backTempArr.length>0) backTempArr.pop();
+                // for(let v = vi; v < islandMesh.pos.length; v++){
+                //     if(v===vi && endOffset>0){
+                //         while (backIndex < backStart+endOffset){
+                //             islandMesh.tri.push(V(frontIndex+1,frontIndex,v));
+                //             frontIndex++;
+                //         }
+                //     }
+                //     if(v<islandMesh.pos.length-1){
+                //         islandMesh.tri.push(V(frontIndex,v,v+1), V(frontIndex+1,frontIndex,v));
+                //         frontIndex++;
+                //     }
+                //     else{
+                //         while(frontIndex<frontEnd){
+                //             islandMesh.tri.push(V(frontIndex+1,frontIndex,v));
+                //             frontIndex++;
+                //         }
+                //     }
+                // }
             } 
         }
 
@@ -91,6 +195,7 @@ export module TreeBuilder{
         const island = EM.mk();
         EM.set(island, RenderableConstructDef,islandMesh);
         EM.set(island, PositionDef, V(0,0,0));
+        console.log("island");
     }
     export function mkRandPalmTree(base: V3, hasNuts:boolean = Math.random() > .1){
         const treeMesh = createEmptyMesh("palmTree");

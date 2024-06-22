@@ -167,17 +167,6 @@ export async function initJoelGame() {
   const skyMesh = domeMesh;
   EM.set(sky, RenderableConstructDef, skyMesh, undefined, undefined, SKY_MASK);
 
-  // pedestal
-  // const pedestal = EM.mk();
-  // EM.set(pedestal, RenderableConstructDef, HexMesh);
-  // EM.set(pedestal, ColorDef, ENDESGA16.orange);
-  // EM.set(pedestal, PositionDef, V(0, 0, -10));
-  // EM.set(pedestal, ScaleDef, V(10, 10, 10));
-  // EM.set(pedestal, ColliderDef, {
-  //   shape: "AABB",
-  //   solid: true,
-  //   aabb: HEX_AABB,
-  // });
   
   interface worldParams {
     wallHeight: number;
@@ -198,75 +187,6 @@ export async function initJoelGame() {
     hasTrees: true,
     wallColor: V(1,.1,0),
   }
-  // const wallHeight = 40;
-  // const wallWidth = 20;
-  // const CLUSTER_VERT_OFFSET = 3;
-  // const CLUSTER_VERT_VAR = 5;
-  // const CLUSTER_SIZE = 4;
-  
-  // function mkTriMesh(va: V3, vb: V3, vc: V3): Mesh{
-  //   let result: Mesh = {
-  //     dbgName: "flatTri",
-  //     pos: [va,vb,vc],
-  //     tri:[
-  //       V(0,1,2)
-  //     ],
-  //     quad: [],
-  //     colors: [ENDESGA16.lightBlue],
-  //     surfaceIds: [1],
-  //     usesProvoking: true
-  //   }
-  //   return result;
-  // }
-
-  // function mkRectMesh(xLen: number, yLen: number, zLen: number): Mesh {
-  //   let hx = xLen / 2;
-  //   let hy = yLen / 2;
-  //   let hz = zLen / 2;
-  
-  //   let result: Mesh = {
-  //     dbgName: "rect",
-  //     pos: [
-  //       V(+hx, +hy, +hz),
-  //       V(-hx, +hy, +hz),
-  //       V(-hx, -hy, +hz),
-  //       V(+hx, -hy, +hz),
-  
-  //       V(+hx, +hy, -hz),
-  //       V(-hx, +hy, -hz),
-  //       V(-hx, -hy, -hz),
-  //       V(+hx, -hy, -hz),
-  //     ],
-  //     tri: [],
-  //     quad: [
-  //       // +Z
-  //       V(0, 1, 2, 3),
-  //       // +Y
-  //       V(4, 5, 1, 0),
-  //       // +X
-  //       V(3, 7, 4, 0),
-  //       // -X
-  //       V(2, 1, 5, 6),
-  //       // -Y
-  //       V(6, 7, 3, 2),
-  //       // -Z
-  //       V(5, 4, 7, 6),
-  //     ],
-  //     colors: [
-  //       V(0, 0, 0),
-  //       V(0, 0, 0),
-  //       V(0, 0, 0),
-  //       V(0, 0, 0),
-  //       V(0, 0, 0),
-  //       V(0, 0, 0),
-  //     ],
-  //     surfaceIds: [1, 2, 3, 4, 5, 6],
-  //     usesProvoking: true,
-  //   };
-  
-  //   return result;
-  // }
-  
 
 
   //build wall
@@ -276,8 +196,6 @@ export async function initJoelGame() {
   EM.set(wall, PositionDef, V(0, 1.5, world.wallHeight / 2));
   EM.set(wall,RotationDef, quat.fromYawPitchRoll(0,Math.PI*.1,0));
 
-  // const wall2 = await EM.whenEntityHas(wall, RenderableDef);
-  // wall2.renderable.meshHandle.pool.updateMeshVertices();
 
   //generate cluster locations:
   const clusters = generateClusters();
@@ -336,6 +254,12 @@ export async function initJoelGame() {
     return catchPoints;
   }
 
+
+  //make island:
+  const islandPos = V(world.wallWidth*-.5 - 10,-5,0);
+  TreeBuilder.mkIsland2(world.wallWidth+20,25,1.5,islandPos);
+
+
   if(world.hasTrees){
     TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4,0,0));
   }
@@ -349,32 +273,7 @@ export async function initJoelGame() {
   //   TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * .5 + 1,0,0));
   // }
 
-  // AssetBuilder.mkRandPalmTree(V(world.wallWidth * -.5 - 3,0,0));
-  // AssetBuilder.mkRandPalmTree(V(world.wallWidth * .5 + 3,0,0));
-  // AssetBuilder.mkPalmTree();
-  // AssetBuilder.mkFrond(V(0,-10,6), V(5,-11,5));
-  // AssetBuilder.mkFrond(V(0,-10,6), V(4,-8,4.8));
-  // AssetBuilder.mkFrond(V(0,-10,6), V(-4,-13,5.7));
-  // AssetBuilder.mkFrond(V(0,-10,6), V(-4.8,-10,6.1));
 
-  
-  // for(let i=0;i<11;i++){
-  //   const hold = EM.mk();
-  //   EM.set(hold, RenderableConstructDef, TetraMesh);
-  //   EM.set(hold, ColorDef, ENDESGA16.red);
-  //   const hor = Math.random()* (wallWidth-3) - (wallWidth-3)/2;
-  //   const vert = Math.random()*(wallHeight-4)+2;
-  //   const dep = (vert-(wallHeight/2))*-.33;
-  //   EM.set(hold, PositionDef, V(hor, dep ,vert));
-  //   // EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, 0, Math.random() * 3));
-    
-
-  //   EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, Math.PI*.6, 0));
-  //   quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
-  //   // EM.set(hold,RotationDef, quat.fromYawPitchRoll(Math.random()-.5,Math.PI*.6,Math.random()-.5));
-  //   EM.set(hold, ScaleDef, V(Math.random()+.5,Math.random()+.5,Math.random()+.5))
-  //   holds.push(hold)
-  // }
 
   //generate guy
   const GUY_SCALE = .75;
@@ -428,11 +327,9 @@ export async function initJoelGame() {
       waterArr.push([]);
       for(let x = 0; x <= xNum; x++){
         waterArr[y].push(mkPointNoObject(V(xStart + increment * x, yStart + increment * y, zPos)));
-        // waterArr[y].push(mkPoint(mkEntity(mkCubeMesh(),V(xStart + increment * x, yStart + increment * y, zPos),2.5,ENDESGA16.lightBlue),false));
-        // if (x%5 === 0) waterArr[y][x].fixed = true;
+        
       }
-      // waterArr[y][0].fixed = true;
-      // waterArr[y][xNum].fixed = true;
+      
     }
     waterArr[0][0].fixed = true;
     waterArr[0][xNum].fixed = true;
@@ -463,42 +360,6 @@ export async function initJoelGame() {
       }
     }
   }
-// to do: move lower to update variables
-  // function generateWave(waterArr: Point[][], sineMax: number, sineMin: number, sinePos: number, sineUp: boolean, sineRatio: number): number{
-  //   if(sineUp){
-  //     sinePos += (sineMax - sinePos) * sineRatio;
-  //     if(sinePos > sineMax - .01){
-  //       // to do: update external sineUp boolean
-  //       sineUp = true;
-  //     }
-  //   }
-  //   else{
-  //     sinePos -= (sinePos - sineMin) * sineRatio;
-  //     if(sinePos < sineMin + .01){
-  //       // to do: update external sineUp boolean
-  //       sineUp = true;
-  //     }
-  //   }
-    
-  //   for(let y = 0; y < waterArr.length; y++){}
-  //   return sinePos;
-  // }
-
-  //stuff for refac:
-  // const myData = {
-  //   points: [
-  //     {offset: V(-4.2,0,5), scale: 3, fixed: true}, // lh
-  //     {offset: V(-4.2,0,5), }, // ls
-  //     {offset: V(-4.2,0,5), },
-  //     {offset: V(-4.2,0,5), },
-  //   ],
-  //   sticks: [
-  //     [0, 1], // lh to ls
-  //     [1, 2],
-  //     [0, 2]
-  //   ]
-  // }
-
 
   
 
@@ -604,7 +465,7 @@ export async function initJoelGame() {
   }
   
   const WATER_WIDTH = 1000;
-  const WATER_DEPTH = 600;
+  const WATER_DEPTH = 1000;
   const WATER_HEIGHT = .7
   const WATER_INCREMENT = 50; 
 
@@ -612,16 +473,6 @@ export async function initJoelGame() {
   const WATER_X_POINTS = waterArr[0].length;
 
   const SINE_HEIGHT = 6;
-  // const wave = {
-  //   sinePos: waterArr[0][0].position[2],
-  //     sineMax: waterArr[0][0].position[2] + SINE_HEIGHT,
-  //     sineMin: waterArr[0][0].position[2] - SINE_HEIGHT,
-  //     sineRatio: .1,
-  //     sineUp: true
-  // }
-
-  // const waterObject = EM.mk();
-  // EM.set(waterObject,)
   const waterMesh = mkWaterMesh(waterArr);
   const waterTemp = mkEntity(waterMesh,V(0,0,0),1,ENDESGA16.lightBlue);
   const waterObject = await EM.whenEntityHas(waterTemp,RenderableDef);
@@ -700,51 +551,30 @@ export async function initJoelGame() {
   water.wave.point.fixed = true;
 
   let audioElement: HTMLAudioElement;
-  //  = new Audio("/Users/joelsheppard/vscode/Web-Dev/sprig/sprig/src/joelgame/audio-files/techno2.mp3")
   let audioGraph: AudioGraph;
   let freqDataArr: Uint8Array;
   let audioVisualiserArr: Point[];
-  //  = createAudioGraph(AUDIO_ELEMENT , false, true);
-  // assert(audioGraph.analyser);
-  // configureAnalyser(audioGraph.analyser,32,-40,0,0);
-  // const freqDataArr = buildFreqDataArray(audioGraph.analyser);
+  
 
-
-  function buildFreqAmpVisualiser(bands: number, xStart: number = 0, yStart: number = 0, zStart: number = 0, color: V3 = ENDESGA16.darkRed): Point[] {
-    const arr: Point[] = []
-    const scale = 2
-    for (let i = 0; i < bands; i++){
-      arr.push(mkPoint(mkEntity(mkCubeMesh(),V(xStart+i*scale,yStart,zStart), 1, color),true));
-    }
-    return arr;
-  }
-
-  function updateFreqAmpVisualiser(visArr: Point[], dataArr: Uint8Array, analyser: AnalyserNode, scale: number = .1){
-    // audioGraph.analyser?.getByteFrequencyData(dataArr);
-    for(let i=0;i<visArr.length;i++){
-      const point = visArr[i];
-      assert(point.object);
-      point.object.position[2] = point.prevPosition[2] + dataArr[i] * scale;
-    }
-    // updateHoldColors(dataArr,1);
-  }
-
-  // function updateHoldColors(dataArr:Uint8Array, band: number){
-  //   if(dataArr[band]!==0){
-  //     if(holds[0].color[1] > 0.29 && holds[0].color[1] < 0.3){
-  //       for(let i = 0;i<holds.length-1;i++){
-  //         // EM.set(holds[i],ColorDef,ENDESGA16.blue);
-  //         holds[i].color[1] = 0.04;
-  //       }
-  //     }
-  //     else{
-  //       for(let i = 0;i<holds.length-1;i++){
-  //         EM.set(holds[i],ColorDef,ENDESGA16.red);
-  //         holds[i].color[1] = 0.295;
-  //       }
-  //     }
+  // function buildFreqAmpVisualiser(bands: number, xStart: number = 0, yStart: number = 0, zStart: number = 0, color: V3 = ENDESGA16.darkRed): Point[] {
+  //   const arr: Point[] = []
+  //   const scale = 2
+  //   for (let i = 0; i < bands; i++){
+  //     arr.push(mkPoint(mkEntity(mkCubeMesh(),V(xStart+i*scale,yStart,zStart), 1, color),true));
   //   }
+  //   return arr;
   // }
+
+  // function updateFreqAmpVisualiser(visArr: Point[], dataArr: Uint8Array, analyser: AnalyserNode, scale: number = .1){
+  //   // audioGraph.analyser?.getByteFrequencyData(dataArr);
+  //   for(let i=0;i<visArr.length;i++){
+  //     const point = visArr[i];
+  //     assert(point.object);
+  //     point.object.position[2] = point.prevPosition[2] + dataArr[i] * scale;
+  //   }
+  //   // updateHoldColors(dataArr,1);
+  // }
+
   let greenUp = true;
   let blueUp = false;
   function updateHoldColors(changeRate: number = .15, maxSaturation: number = .75){
@@ -801,19 +631,7 @@ export async function initJoelGame() {
       holds[i].color[2] = Math.random();
     }
   }
-
-
-
-
-  // const audioVisualiserArr = buildFreqAmpVisualiser(freqDataArr.length,-10,0,5,ENDESGA16.darkRed);
-  // for(let i=0;i<audioVisualiserArr.length;i++) assert(audioVisualiserArr[i].object)
   
-
-
-  // console.log("red: " + ENDESGA16.red);
-  // console.log("orange: " + ENDESGA16.orange);
-
-
   //color stuff
   let colorChangeCount = 0;
   const COLOR_CHANGE_OPEN = 14;
@@ -823,21 +641,10 @@ export async function initJoelGame() {
   const WATER_STICK_ITTERATIONS = 10;
   const WATER_MOTION = false;
   let waitCount = 60;
-  // let fixedMoveCount = 65;
   let moveAmt = V(.006,-.1,.4);
   let mouseIsPressed = false;
   let mouseStart = V(0,0);
   let mousePosition = V(0,0);
-  // let holdHand = lh;
-  // let jumpHand = rh;
-  // const JUMP_SCALE = .004;
-  // let jump = false;
-  // const ESCAPE_AMT = 10;
-  // let escapeCurrentHoldCount = ESCAPE_AMT;
-  // const JUMP_OUT_SCALE = -.15;
-  // const CATCH_ACURACY = 1.75;
-  // const ARM_STRETCH_SCALE = .02;
-  // const GUY_START = holds[0].position;
   let gameStarted: boolean = false;
   const CAMERA_OFFSET = V(0,-20,3);
   let cameraPosition = J3.add(CAMERA_OFFSET,GUY_LH_START);
@@ -906,9 +713,6 @@ export async function initJoelGame() {
     return solution;
   }
 
-  // let audioPlaying = false;
-  // AUDIO_ELEMENT.play();
-
   function getRandomInt(min:number, max:number):number {
     const minCeiled = Math.ceil(min);
     const maxFloored = Math.floor(max);
@@ -930,18 +734,7 @@ export async function initJoelGame() {
   // create camera
   const cam = EM.mk();
   EM.set(cam, PositionDef, cameraPosition);
-  // EM.set(cam, ControllableDef);
-  // cam.controllable.modes.canFall = false;
-  // cam.controllable.modes.canJump = false;
-  // g.controllable.modes.canYaw = true;
-  // g.controllable.modes.canPitch = true;
   EM.set(cam, CameraFollowDef, 1);
-  // setCameraFollowPosition(cam, "firstPerson");
-  // EM.set(cam, PositionDef);
-  // EM.set(cam, RotationDef);
-  // quat.rotateY(cam.rotation, quat.IDENTITY, (-5 * Math.PI) / 8);
-  // quat.rotateX(cam.cameraFollow.rotationOffset, quat.IDENTITY, -Math.PI / 8);
-  // EM.set(cam, LinearVelocityDef);
   EM.set(cam, RenderableConstructDef, CubeMesh, true);
 
   function startGame(){
@@ -950,13 +743,11 @@ export async function initJoelGame() {
     guy.jump.jump = false;
     J3.copy(guy.holdHand.position, GUY_LH_START)
     J3.copy(guy.holdHand.prevPosition, guy.holdHand.position);
-    // holdHand.position = J3.clone(GUY_LH_START);
-    // holdHand.prevPosition= holdHand.position;
     guy.jump.escapeCount = guy.jump.escapeAmt;
   }
   //update points and sticks each frame:
   EM.addSystem("stickAndPoint",Phase.GAME_WORLD,[],[InputsDef],(_, {inputs})=>{
-    // const _stk = tmpStack();
+    
     //init game
     if(!gameStarted){
       gameStarted = true;
@@ -969,10 +760,9 @@ export async function initJoelGame() {
       assert(audioGraph.analyser);
       configureAnalyser(audioGraph.analyser,32,-90,0,0);
       freqDataArr = buildFreqDataArray(audioGraph.analyser);
-      // audioVisualiserArr = buildFreqAmpVisualiser(freqDataArr.length,-10,0,5,ENDESGA16.darkRed);
       audioElement.play();
     } 
-    //loop track 
+    //to do: loop track 
     // if(audioElement && audioElement.)
 
     //calculate change to camera position
@@ -987,12 +777,6 @@ export async function initJoelGame() {
     //to do: add game over check
     if(inputs.keyClicks['m']){
       startGame();
-      // jumpHand.fixed = false;
-      // holdHand.fixed = true;
-      // jump = false;
-      // J3.copy(holdHand.position, GUY_LH_START)
-      // J3.copy(holdHand.prevPosition, holdHand.position);
-      // escapeCurrentHoldCount = ESCAPE_AMT;
     }
 
     if(!guy.jump.jump && !mouseIsPressed && inputs.ldown){
@@ -1021,11 +805,7 @@ export async function initJoelGame() {
           else{
             const nextPrevPosition = J3.clone(point.position);
             V3.add(V3.sub(point.position,point.prevPosition,point.prevPosition),point.position, point.position);
-            // point.position[2] -= GRAVITY;
-            // V3.add(V(0,0,GRAVITY),point.position, point.position)
-            // J3.copy(point.prevPosition, nextPrevPosition);
             point.prevPosition = nextPrevPosition;
-
           }
         }
       }
@@ -1034,9 +814,7 @@ export async function initJoelGame() {
     for(let point of guy.points){
 
       if(DEBUG) console.log(inputs.mouseMov);
-      // if (point.position===point.prevPosition){
-      //   point.prevPosition = V3.copy(point.prevPosition, V3.add(point.prevPosition,V(-10,10,-10)));
-      // }
+
       if(point.fixed){
         if(guy.jump.jump){
           fixedMoveUpdate(point);
@@ -1048,35 +826,10 @@ export async function initJoelGame() {
         }
         continue;
       }
-      // if(point.fixed){
-      //   if(waitCount>0){
-      //     waitCount--;
-      //   }
-      //   else if(fixedMoveCount>0){
-      //     fixedMoveUpdate(point);
-      //     fixedMoveCount--;
-      //   }
-      //   else if (fixedMoveCount<=0 && fixedMoveCount>-5) fixedMoveCount--;
-        
-      //   // else if(fixedMoveCount===0){
-      //   //   fixedMoveCount--;
-      //   //   point.fixed = false;
-      //   //   rh.fixed = true;
-      //   // }
-      // //   if(point.position===point.prevPosition){
-      // //     V3.add(point.position, V(10,-10,10),point.position);
-      // //     point.fixed = false;
-      // //     continue;
-      // //   }
-      // //   else point.fixed = false;
-      //   continue;
-      // }
       else{
         const nextPrevPosition = J3.clone(point.position);
         V3.add(J3.sub(point.position,point.prevPosition),point.position, point.position);
         point.position[2] -= GRAVITY;
-        // V3.add(V(0,0,GRAVITY),point.position, point.position)
-        // V3.copy(point.prevPosition, nextPrevPosition);
         point.prevPosition = nextPrevPosition;
       }
     }
@@ -1101,9 +854,6 @@ export async function initJoelGame() {
       guy.jumpHand.position[0] = guy.holdHand.position[0];
       guy.jumpHand.position[1] = guy.holdHand.position[1];
       guy.jumpHand.position[2] = guy.holdHand.position[2];
-      
-      // jumpHand.position = V3.clone(holdHand.position);
-      // jumpHand.fixed = true;
     }
 
     function DragJump(){
@@ -1144,7 +894,7 @@ export async function initJoelGame() {
     }
 
     //adjust points to reconcile stick lengths:
-    // if (false)
+    
     // const _stk = tmpStack();
     updateSticks(sticks,STICK_ITTERATIONS);
     if(WATER_MOTION){
@@ -1191,28 +941,13 @@ export async function initJoelGame() {
         }
         else{
           J3.copy(water.mesh.pos[i*WATER_X_POINTS+j], point.position);
-          // let foo: Mesh;
-          // const wall2 = await EM.whenEntityHas(wall, RenderableDef);
-          // wall2.renderable.meshHandle.pool.updateMeshVertices();
-          // const waterObject = await EM.whenEntityHas(water.object,RenderableDef);
-          // water.object.renderableConstruct.meshOrProto.
         }
-        // water.points[i][j].object.position[0] = water.points[i][j].position[0];
-        // water.points[i][j].object.position[1] = water.points[i][j].position[1];
-        // water.points[i][j].object.position[2] = water.points[i][j].position[2];
       }
     }
 
     if(WATER_MOTION){
       water.object.renderable.meshHandle.pool.updateMeshVertices(water.object.renderable.meshHandle,water.mesh);
     }
-
-    // if(fixedMoveCount === -5){
-    //   fixedMoveCount--;
-    //   head.fixed = false;
-    //   rh.fixed = true;
-    // }
-
 
     // draw sticks
     for (let i = 0; i < sticks.length; i++){
@@ -1232,55 +967,15 @@ export async function initJoelGame() {
         colorChangeCount = 0;
         updateHoldColorsRand(); 
       }
-      // console.log(amplitudeArr[0]);
-      // updateFreqAmpVisualiser(audioVisualiserArr,freqDataArr,audioGraph.analyser);
-      // updateHoldColors(freqDataArr,1);
-      // if(freqDataArr[10]!==0){
-      //   if(holds[0].color ===ENDESGA16.red){
-      //     for(let i = 0;i<holds.length-1;i++){
-      //       EM.set(holds[i],ColorDef,ENDESGA16.blue);
-      //     }
-      //   }
-      //   else{
-      //     for(let i = 0;i<holds.length-1;i++){
-      //       EM.set(holds[i],ColorDef,ENDESGA16.red);
-      //     }
-      //   }
-      // }
+      
     }
   });
 
 
 
-
-
-
-
-
-
-
-
-
-  // V3.dist()
-  // let hangPoint = holds[0].position;
-  // let rightFixed = true;
-  // const rhLoc = hangPoint;
-
-
-  
-
-
   // gizmo
   // addWorldGizmo(V(-20, 0, 0), 5);
 
-
-  // line test
-  // sketch({
-  //   shape: "line",
-  //   color: ENDESGA16.orange,
-  //   start: [-10, -10, -10],
-  //   end: [10, 10, 10],
-  // });
 
   // dbg ghost
   if (DBG_GHOST) {
