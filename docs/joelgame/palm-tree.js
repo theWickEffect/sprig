@@ -43,10 +43,10 @@ export var TreeBuilder;
             for (let x = 0; x < verts[0].length; x++) {
                 islandMesh.pos.push(verts[y][x]);
                 if (y > 0 && x > 0) {
-                    const vtl = (y - 1) * verts.length + x - 1;
-                    const vtr = (y - 1) * verts.length + x;
-                    const vbr = y * verts.length + x;
-                    const vbl = y * verts.length + x - 1;
+                    const vtl = (y - 1) * verts[0].length + x - 1;
+                    const vtr = (y - 1) * verts[0].length + x;
+                    const vbr = y * verts[0].length + x;
+                    const vbl = y * verts[0].length + x - 1;
                     islandMesh.tri.push(V(vtl, vtr, vbr), V(vtl, vbr, vbl));
                 }
             }
