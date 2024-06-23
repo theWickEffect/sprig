@@ -35,9 +35,26 @@ export module TreeBuilder{
         verts[verts.length-1][0][2] = -6;
         verts[verts.length-1][verts[0].length-1][2] = -7;
 
-        for(let y = 0; y < verts.length/2; y++){
+        const curveRate = .8;
+        for(let y = 1; y<verts.length/2; y++){
             const y2 = verts.length-1-y;
-            for(let x = 0; x < verts[0].length/2; x++){
+            verts[y][0][2] = (verts[y-1][0][2]) * curveRate;
+            verts[y][verts[0].length-1][2] = (verts[y-1][verts[0].length-1][2]) * curveRate;
+            verts[y2][0][2] = (verts[y2+1][0][2]) * curveRate;
+            verts[y2][verts[0].length-1][2] = (verts[y2+1][verts[0].length-1][2]) * curveRate;
+        }
+        for(let x = 1; x<verts[0].length/2; x++){
+            const x2 = verts[0].length-1-x;
+            verts[0][x][2] = (verts[0][x-1][2]) * curveRate;
+            verts[verts.length-1][x][2] = (verts[verts.length-1][x-1][2]) * curveRate;
+            verts[0][x2][2] = (verts[0][x2+1][2]) * curveRate;
+            verts[verts.length-1][x2][2] = (verts[verts.length-1][x2+1][2]) * curveRate;
+
+        }
+
+        for(let y = 1; y < verts.length/2; y++){
+            const y2 = verts.length-1-y;
+            for(let x = 1; x < verts[0].length/2; x++){
                 const x2 = verts[0].length-1-x;
                 htUpdate(y,x);
                 htUpdate(y,x2);
@@ -65,10 +82,10 @@ export module TreeBuilder{
         }
 
         for(let i = 0; i < islandMesh.tri.length; i++){
+            color[0]+=Math.random()*.01-.005;
+            color[1]+=Math.random()*.01-.005;
+            color[2]+=Math.random()*.01-.005;
             const nextColor = J3.clone(color);
-            nextColor[0]+= Math.random() * .1;
-            nextColor[1]+= Math.random() * .1;
-            nextColor[2]+= Math.random() * .1;
             islandMesh.colors.push(nextColor);
             islandMesh.surfaceIds.push(1);
         }
@@ -155,30 +172,6 @@ export module TreeBuilder{
                         }
                     }
                 }
-                // let backIndex = backStart;
-                // vi = islandMesh.pos.length;
-                // for(let vert of backTempArr){
-                //     islandMesh.pos.push(vert);
-                // }
-                // while(backTempArr.length>0) backTempArr.pop();
-                // for(let v = vi; v < islandMesh.pos.length; v++){
-                //     if(v===vi && endOffset>0){
-                //         while (backIndex < backStart+endOffset){
-                //             islandMesh.tri.push(V(frontIndex+1,frontIndex,v));
-                //             frontIndex++;
-                //         }
-                //     }
-                //     if(v<islandMesh.pos.length-1){
-                //         islandMesh.tri.push(V(frontIndex,v,v+1), V(frontIndex+1,frontIndex,v));
-                //         frontIndex++;
-                //     }
-                //     else{
-                //         while(frontIndex<frontEnd){
-                //             islandMesh.tri.push(V(frontIndex+1,frontIndex,v));
-                //             frontIndex++;
-                //         }
-                //     }
-                // }
             } 
         }
 
