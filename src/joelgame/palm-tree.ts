@@ -190,13 +190,13 @@ export module TreeBuilder{
         EM.set(island, PositionDef, V(0,0,0));
         console.log("island");
     }
-    export function mkRandPalmTree(base: V3, hasNuts:boolean = Math.random() > .1){
+    export function mkRandPalmTree(base: V3, height: number = 13, hasNuts:boolean = Math.random() > .1){
         const treeMesh = createEmptyMesh("palmTree");
         treeMesh.surfaceIds = [];
         let top = V(0,0,0);
-        top[0] = base[0] + Math.random()*6 - 3;
-        top[1] = base[1] + Math.random()*6 - 3;
-        top[2] = base[2] + Math.random()*4 + 8.5;
+        top[0] = base[0] + Math.random()*5 - 2.5;
+        top[1] = base[1] + Math.random()*5 - 2.5;
+        top[2] = base[2] + Math.random()*4 - 1.5 + height;
         let trunkTop = J3.clone(top);
         trunkTop[2] -= .7;
         if(hasNuts) mkNuts(top);
@@ -274,7 +274,7 @@ export module TreeBuilder{
             }
         }
         function mkTrunk(
-            base: V3, top: V3, barkSpacing: number = .03, curveRatio: number = .1,
+            base: V3, top: V3, barkSpacing: number = .024, curveRatio: number = .1,
         ){
             const xLean = base[0] - top[0];
             const yLean = base[1] - top[1];

@@ -169,13 +169,13 @@ export var TreeBuilder;
         console.log("island");
     }
     TreeBuilder.mkIsland = mkIsland;
-    function mkRandPalmTree(base, hasNuts = Math.random() > .1) {
+    function mkRandPalmTree(base, height = 13, hasNuts = Math.random() > .1) {
         const treeMesh = createEmptyMesh("palmTree");
         treeMesh.surfaceIds = [];
         let top = V(0, 0, 0);
-        top[0] = base[0] + Math.random() * 6 - 3;
-        top[1] = base[1] + Math.random() * 6 - 3;
-        top[2] = base[2] + Math.random() * 4 + 8.5;
+        top[0] = base[0] + Math.random() * 5 - 2.5;
+        top[1] = base[1] + Math.random() * 5 - 2.5;
+        top[2] = base[2] + Math.random() * 4 - 1.5 + height;
         let trunkTop = J3.clone(top);
         trunkTop[2] -= .7;
         if (hasNuts)
@@ -240,7 +240,7 @@ export var TreeBuilder;
                 treeMesh.colors.push(ENDESGA16.darkBrown);
             }
         }
-        function mkTrunk(base, top, barkSpacing = .03, curveRatio = .1) {
+        function mkTrunk(base, top, barkSpacing = .024, curveRatio = .1) {
             const xLean = base[0] - top[0];
             const yLean = base[1] - top[1];
             const treeLen = J3.dist(base, top);

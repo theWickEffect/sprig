@@ -179,7 +179,7 @@ export async function initJoelGame() {
   }
 
   const world: worldParams = {
-    wallHeight: 40,
+    wallHeight: 45,
     wallWidth:20,
     CLUSTER_VERT_OFFSET: 3,
     CLUSTER_VERT_VAR: 5,
