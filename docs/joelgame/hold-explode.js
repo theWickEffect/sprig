@@ -4,6 +4,9 @@ export var HoldMod;
     }
     HoldMod.explode = explode;
     function shake(hold) {
+        hold.entity.position[0] += .01 * Math.random() - .005;
+        hold.entity.position[1] += .01 * Math.random() - .005;
+        hold.entity.position[2] += .01 * Math.random() - .005;
     }
     HoldMod.shake = shake;
 })(HoldMod || (HoldMod = {}));

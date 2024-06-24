@@ -108,6 +108,7 @@ export module J3{
 
 export interface Hold {
   entity: EntityW<[typeof PositionDef, typeof ColorDef]>;
+  catchPoint: V3;
   explode?: boolean;
   finish?: boolean;
 }
@@ -251,6 +252,7 @@ export async function initJoelGame() {
         EM.set(hold, ScaleDef, V(Math.random()+.5,Math.random()+.5,Math.random()+.5))
         const holdI: Hold = {
           entity: hold,
+          catchPoint: V(hold.position[0], hold.position[1] - 2, hold.position[2]),
         }
         holds.push(holdI)
         if(i===clusters.length-1){
@@ -263,14 +265,14 @@ export async function initJoelGame() {
   }
   //get hold catch points
   // to do add to data:
-  const holdCatchPoints = getHoldCatchPoints();
-  function getHoldCatchPoints(): V3[]{
-    let catchPoints: V3[] = [];
-    for(const hold of holds){
-      catchPoints.push(V(hold.entity.position[0], hold.entity.position[1] - 2, hold.entity.position[2]));
-    }
-    return catchPoints;
-  }
+  // const holdCatchPoints = getHoldCatchPoints();
+  // function getHoldCatchPoints(): V3[]{
+  //   let catchPoints: V3[] = [];
+  //   for(const hold of holds){
+  //     catchPoints.push(V(hold.entity.position[0], hold.entity.position[1] - 2, hold.entity.position[2]));
+  //   }
+  //   return catchPoints;
+  // }
 
 
   //make island:
@@ -676,6 +678,7 @@ export async function initJoelGame() {
     points: Point[];
     sticks: Stick[];
     jump: JumpData;
+    hold: Hold;
   }
   interface JumpData{
     scale: number;
@@ -692,6 +695,7 @@ export async function initJoelGame() {
     holdHand: lh,
     points: bodyPoints,
     sticks: sticks,
+    hold: holds[0],
     jump: {
       scale: .004,
       outScale: -.15,
@@ -759,7 +763,8 @@ export async function initJoelGame() {
     guy.jumpHand.fixed = false;
     guy.holdHand.fixed = true;
     guy.jump.jump = false;
-    J3.copy(guy.holdHand.position, GUY_LH_START)
+    guy.hold = holds[0]
+    J3.copy(guy.holdHand.position, guy.hold.catchPoint);
     J3.copy(guy.holdHand.prevPosition, guy.holdHand.position);
     guy.jump.escapeCount = guy.jump.escapeAmt;
   }
@@ -893,9 +898,9 @@ export async function initJoelGame() {
     }
     
     function checkForHoldColision(): boolean{
-      for(const catchPoint of holdCatchPoints){
-        if(J3.dist(guy.jumpHand.position,catchPoint) < guy.jump.catchAcuracy){
-          J3.copy(guy.jumpHand.position, catchPoint);
+      for(const hold of holds){
+        if(J3.dist(guy.jumpHand.position, hold.catchPoint) < guy.jump.catchAcuracy){
+          J3.copy(guy.jumpHand.position, hold.catchPoint);
           // jumpHand.position = V3.clone(catchPoint);
           // guy.jumpHand.prevPosition = guy.jumpHand.position;
           J3.copy(guy.jumpHand.prevPosition,guy.jumpHand.position);
