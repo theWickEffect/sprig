@@ -160,7 +160,7 @@ export async function initJoelGame() {
     function generateClusters() {
         let clusters = [];
         let hor = Math.random() * (world.wallWidth - 3) - (world.wallWidth - 3) / 2;
-        let vert = 5;
+        let vert = 6.1;
         let dep = (vert - (world.wallHeight / 2));
         clusters.push(V(hor, dep, vert));
         while (clusters[clusters.length - 1][2] < world.wallHeight - 10) {
