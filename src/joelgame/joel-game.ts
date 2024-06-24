@@ -590,7 +590,7 @@ export async function initJoelGame() {
 
   // const waterMesh = mkWaterMesh(waterArr);
 
-  // addSlack(water.points, .1);
+  addSlack(water.points, .1);
 
   // fix waive point
   water.wave.point.fixed = true;
@@ -684,7 +684,7 @@ export async function initJoelGame() {
   const GRAVITY = .008
   const STICK_ITTERATIONS = 20;
   const WATER_STICK_ITTERATIONS = 10;
-  const WATER_MOTION = false;
+  const WATER_MOTION = true;
   let waitCount = 60;
   let moveAmt = V(.006,-.1,.4);
   let mouseIsPressed = false;
