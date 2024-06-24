@@ -364,47 +364,47 @@ export async function initJoelGame() {
     }
   }
 
-  function mkWaterGrid(xWid: number, yDep: number, increment: number, yStart: number, xStart: number, zPos: number = 0): Point[][]{
-    const xNum = Math.floor(xWid/increment);
-    const yNum = Math.floor(yDep/increment);
-    const waterArr: Point[][] = [];
-    for(let y=0;y<=yNum;y++){
-      waterArr.push([]);
-      for(let x = 0; x <= xNum; x++){
-        waterArr[y].push(mkPointNoObject(V(xStart + increment * x, yStart + increment * y, zPos)));
+  // function mkWaterGrid(xWid: number, yDep: number, increment: number, yStart: number, xStart: number, zPos: number = 0): Point[][]{
+  //   const xNum = Math.floor(xWid/increment);
+  //   const yNum = Math.floor(yDep/increment);
+  //   const waterArr: Point[][] = [];
+  //   for(let y=0;y<=yNum;y++){
+  //     waterArr.push([]);
+  //     for(let x = 0; x <= xNum; x++){
+  //       waterArr[y].push(mkPointNoObject(V(xStart + increment * x, yStart + increment * y, zPos)));
         
-      }
+  //     }
       
-    }
-    waterArr[0][0].fixed = true;
-    waterArr[0][xNum].fixed = true;
-    waterArr[yNum][0].fixed = true;
-    waterArr[yNum][xNum].fixed = true;
-    return waterArr;
-  }
-  // _stk.pop();
-  function mkWaterSticks(waterArr: Point[][]): Stick[]{
-    const sticks: Stick[] = [];
-    for(let y=0; y<waterArr.length; y++){
-      for(let x=0; x<waterArr[0].length; x++){
-        if(y!==0) sticks.push(mkStick(waterArr[y][x],waterArr[y-1][x]));
-        if(x!==0) sticks.push(mkStick(waterArr[y][x],waterArr[y][x-1]));
-      }
-    }
-    return sticks;
-  }
-  // _stk.pop();
-  function addSlack(points: Point[][], slackAmt: number){
-    slackAmt /= points[0].length
-    for(let y = 0; y < points.length; y++){
-      for(let x = 0; x < points[0].length; x++){
-        const point = points[y][x];
-        point.position[0] -= slackAmt * x;
-        point.prevPosition[0] -= slackAmt * x;
-        // point.object.position[0] -= slackAmt * x;
-      }
-    }
-  }
+  //   }
+  //   waterArr[0][0].fixed = true;
+  //   waterArr[0][xNum].fixed = true;
+  //   waterArr[yNum][0].fixed = true;
+  //   waterArr[yNum][xNum].fixed = true;
+  //   return waterArr;
+  // }
+  // // _stk.pop();
+  // function mkWaterSticks(waterArr: Point[][]): Stick[]{
+  //   const sticks: Stick[] = [];
+  //   for(let y=0; y<waterArr.length; y++){
+  //     for(let x=0; x<waterArr[0].length; x++){
+  //       if(y!==0) sticks.push(mkStick(waterArr[y][x],waterArr[y-1][x]));
+  //       if(x!==0) sticks.push(mkStick(waterArr[y][x],waterArr[y][x-1]));
+  //     }
+  //   }
+  //   return sticks;
+  // }
+  // // _stk.pop();
+  // function addSlack(points: Point[][], slackAmt: number){
+  //   slackAmt /= points[0].length
+  //   for(let y = 0; y < points.length; y++){
+  //     for(let x = 0; x < points[0].length; x++){
+  //       const point = points[y][x];
+  //       point.position[0] -= slackAmt * x;
+  //       point.prevPosition[0] -= slackAmt * x;
+  //       // point.object.position[0] -= slackAmt * x;
+  //     }
+  //   }
+  // }
 
   
 
@@ -492,108 +492,108 @@ export async function initJoelGame() {
     mkStick(head,pelvis)
   ];
 
-  interface Wave{
-    sinePos: number;
-    sineMax: number;
-    sineMin: number;
-    sineRatio: number;
-    sineUp: boolean;
-    point: Point;
-  }
+  // interface Wave{
+  //   sinePos: number;
+  //   sineMax: number;
+  //   sineMin: number;
+  //   sineRatio: number;
+  //   sineUp: boolean;
+  //   point: Point;
+  // }
 
-  interface Water {
-    points: Point[][];
-    sticks: Stick[];
-    mesh: Mesh;
-    object: EntityW<[NonupdatableComponentDef<"renderable", Renderable, [r: Renderable], false>], number>;
-    wave: Wave;
-  }
+  // interface Water {
+  //   points: Point[][];
+  //   sticks: Stick[];
+  //   mesh: Mesh;
+  //   object: EntityW<[NonupdatableComponentDef<"renderable", Renderable, [r: Renderable], false>], number>;
+  //   wave: Wave;
+  // }
   
-  const WATER_WIDTH = 1000;
-  const WATER_DEPTH = 1000;
-  const WATER_HEIGHT = .7
-  const WATER_INCREMENT = 50; 
+  // const WATER_WIDTH = 1000;
+  // const WATER_DEPTH = 1000;
+  // const WATER_HEIGHT = .7
+  // const WATER_INCREMENT = 50; 
 
-  const waterArr = mkWaterGrid(WATER_WIDTH,WATER_DEPTH,WATER_INCREMENT,-1*(WATER_DEPTH/6),-1*(WATER_WIDTH/2),WATER_HEIGHT);
-  const WATER_X_POINTS = waterArr[0].length;
+  // const waterArr = mkWaterGrid(WATER_WIDTH,WATER_DEPTH,WATER_INCREMENT,-1*(WATER_DEPTH/6),-1*(WATER_WIDTH/2),WATER_HEIGHT);
+  // const WATER_X_POINTS = waterArr[0].length;
 
-  const SINE_HEIGHT = 6;
-  const waterMesh = mkWaterMesh(waterArr);
-  const waterTemp = mkEntity(waterMesh,V(0,0,0),1,ENDESGA16.lightBlue);
-  const waterObject = await EM.whenEntityHas(waterTemp,RenderableDef);
-  const water: Water = {
-    points: waterArr,
-    sticks: mkWaterSticks(waterArr),
-    object: waterObject,
-    mesh: waterMesh,
-    wave: {
-      sinePos: waterArr[0][0].position[2],
-      sineMax: waterArr[0][0].position[2] + SINE_HEIGHT,
-      sineMin: waterArr[0][0].position[2] - SINE_HEIGHT,
-      sineRatio: .03,
-      sineUp: true,
-      point: waterArr[Math.floor(waterArr.length/2)+6][Math.floor(waterArr[0].length/2)]
-    }
-  } 
+  // const SINE_HEIGHT = 6;
+  // const waterMesh = mkWaterMesh(waterArr);
+  // const waterTemp = mkEntity(waterMesh,V(0,0,0),1,ENDESGA16.lightBlue);
+  // const waterObject = await EM.whenEntityHas(waterTemp,RenderableDef);
+  // const water: Water = {
+  //   points: waterArr,
+  //   sticks: mkWaterSticks(waterArr),
+  //   object: waterObject,
+  //   mesh: waterMesh,
+  //   wave: {
+  //     sinePos: waterArr[0][0].position[2],
+  //     sineMax: waterArr[0][0].position[2] + SINE_HEIGHT,
+  //     sineMin: waterArr[0][0].position[2] - SINE_HEIGHT,
+  //     sineRatio: .03,
+  //     sineUp: true,
+  //     point: waterArr[Math.floor(waterArr.length/2)+6][Math.floor(waterArr[0].length/2)]
+  //   }
+  // } 
 
 
-  function mkWaterMesh(waterPoints: Point[][]): Mesh{
-    const verts: V3[] = [];
-    const ids: number[] = [];
-    let id = 0;
-    let tri: V3[] = [];
-    const colors: V3[] = []
-    let curPoint = 0;
-    for(let i=0; i<waterPoints.length; i++){
-      for(let j=0;j< waterPoints[0].length; j++){
-        verts.push(J3.clone(waterPoints[i][j].position));
-        if(i>0 && j>0){
-          tri.push(V(curPoint, curPoint - WATER_X_POINTS - 1, curPoint - WATER_X_POINTS));
-          ids.push(id);
-          id++;
-          colors.push(V(0,0,0));
-          tri.push(V(curPoint, curPoint - 1, curPoint - WATER_X_POINTS - 1))
-          ids.push(id);
-          id++;
-          colors.push(V(0,0,0));
-        }
-        curPoint++;
-      }
-    }
-    const mesh: Mesh = {
-      dbgName: "water",
-      pos: verts,
-      tri,
-      quad: [],
-      colors,
-      surfaceIds: ids,
-      usesProvoking: true
-    }
-    return mesh;
-  }
+  // function mkWaterMesh(waterPoints: Point[][]): Mesh{
+  //   const verts: V3[] = [];
+  //   const ids: number[] = [];
+  //   let id = 0;
+  //   let tri: V3[] = [];
+  //   const colors: V3[] = []
+  //   let curPoint = 0;
+  //   for(let i=0; i<waterPoints.length; i++){
+  //     for(let j=0;j< waterPoints[0].length; j++){
+  //       verts.push(J3.clone(waterPoints[i][j].position));
+  //       if(i>0 && j>0){
+  //         tri.push(V(curPoint, curPoint - WATER_X_POINTS - 1, curPoint - WATER_X_POINTS));
+  //         ids.push(id);
+  //         id++;
+  //         colors.push(V(0,0,0));
+  //         tri.push(V(curPoint, curPoint - 1, curPoint - WATER_X_POINTS - 1))
+  //         ids.push(id);
+  //         id++;
+  //         colors.push(V(0,0,0));
+  //       }
+  //       curPoint++;
+  //     }
+  //   }
+  //   const mesh: Mesh = {
+  //     dbgName: "water",
+  //     pos: verts,
+  //     tri,
+  //     quad: [],
+  //     colors,
+  //     surfaceIds: ids,
+  //     usesProvoking: true
+  //   }
+  //   return mesh;
+  // }
 
-  function generateWave(water: Water){
-    if(water.wave.sineUp){
-      water.wave.sinePos += (water.wave.sineMax - water.wave.sinePos) * water.wave.sineRatio;
-      if(water.wave.sinePos > water.wave.sineMax - .08){
-        water.wave.sineUp = false;
-      }
-    }
-    else{
-      water.wave.sinePos -= (water.wave.sinePos - water.wave.sineMin) * water.wave.sineRatio;
-      if(water.wave.sinePos < water.wave.sineMin + .1){
-        water.wave.sineUp = true;
-      }
-    }
-    water.wave.point.position[2] = water.wave.sinePos;
-  }
+  // function generateWave(water: Water){
+  //   if(water.wave.sineUp){
+  //     water.wave.sinePos += (water.wave.sineMax - water.wave.sinePos) * water.wave.sineRatio;
+  //     if(water.wave.sinePos > water.wave.sineMax - .08){
+  //       water.wave.sineUp = false;
+  //     }
+  //   }
+  //   else{
+  //     water.wave.sinePos -= (water.wave.sinePos - water.wave.sineMin) * water.wave.sineRatio;
+  //     if(water.wave.sinePos < water.wave.sineMin + .1){
+  //       water.wave.sineUp = true;
+  //     }
+  //   }
+  //   water.wave.point.position[2] = water.wave.sinePos;
+  // }
 
   // const waterMesh = mkWaterMesh(waterArr);
 
-  addSlack(water.points, .1);
+  // addSlack(water.points, .1);
 
   // fix waive point
-  water.wave.point.fixed = true;
+  // water.wave.point.fixed = true;
 
   let audioElement: HTMLAudioElement;
   let audioGraph: AudioGraph;
@@ -622,43 +622,43 @@ export async function initJoelGame() {
 
   let greenUp = true;
   let blueUp = false;
-  function updateHoldColors(changeRate: number = .15, maxSaturation: number = .75){
-    const negChange = changeRate * -1;
-    if(greenUp){
-      colorChange(1,changeRate);
-      if(holds[0].entity.color[1] > maxSaturation){
-        greenUp = false;
-      }
-    } 
-    else if(holds[0].entity.color[1] > 0){
-      colorChange(1,negChange);
-      if(holds[0].entity.color[1] === 0){
-        blueUp = true;
-      }
-    }
-    else if(blueUp){
-      colorChange(2,changeRate);
-      if(holds[0].entity.color[2] > maxSaturation){
-        blueUp = false;
-      }
-    } 
-    else{
-      colorChange(2,negChange);
-      if(holds[0].entity.color[2] === 0){
-        greenUp = true;
-      }
-    }
+  // function updateHoldColors(changeRate: number = .15, maxSaturation: number = .75){
+  //   const negChange = changeRate * -1;
+  //   if(greenUp){
+  //     colorChange(1,changeRate);
+  //     if(holds[0].entity.color[1] > maxSaturation){
+  //       greenUp = false;
+  //     }
+  //   } 
+  //   else if(holds[0].entity.color[1] > 0){
+  //     colorChange(1,negChange);
+  //     if(holds[0].entity.color[1] === 0){
+  //       blueUp = true;
+  //     }
+  //   }
+  //   else if(blueUp){
+  //     colorChange(2,changeRate);
+  //     if(holds[0].entity.color[2] > maxSaturation){
+  //       blueUp = false;
+  //     }
+  //   } 
+  //   else{
+  //     colorChange(2,negChange);
+  //     if(holds[0].entity.color[2] === 0){
+  //       greenUp = true;
+  //     }
+  //   }
 
-    function colorChange(colorIndex: 0 | 1 | 2, change: number){
-      let newColor = holds[0].entity.color[colorIndex] + change
-      if(newColor < 0){
-        newColor = 0;
-      }
-      for(let i=0;i<holds.length-1; i++){
-        holds[i].entity.color[colorIndex] = newColor;
-      }
-    }
-  }
+  //   function colorChange(colorIndex: 0 | 1 | 2, change: number){
+  //     let newColor = holds[0].entity.color[colorIndex] + change
+  //     if(newColor < 0){
+  //       newColor = 0;
+  //     }
+  //     for(let i=0;i<holds.length-1; i++){
+  //       holds[i].entity.color[colorIndex] = newColor;
+  //     }
+  //   }
+  // }
 
   // function updateHoldColorsRand(){
   //   let randColor = [Math.random(), Math.random(), Math.random()];
@@ -668,14 +668,6 @@ export async function initJoelGame() {
   //     holds[i].entity.color[2] = randColor[2];
   //   }
   // }
-
-  function updateHoldColorsAllRand(){
-    for(let i=0;i<holds.length-1;i++){
-      holds[i].entity.color[0] = Math.random();
-      holds[i].entity.color[1] = Math.random();
-      holds[i].entity.color[2] = Math.random();
-    }
-  }
   
   //color stuff
   let colorChangeCount = 0;
@@ -683,8 +675,8 @@ export async function initJoelGame() {
 
   const GRAVITY = .008
   const STICK_ITTERATIONS = 20;
-  const WATER_STICK_ITTERATIONS = 10;
-  const WATER_MOTION = true;
+  // const WATER_STICK_ITTERATIONS = 10;
+  // const WATER_MOTION = true;
   let waitCount = 60;
   let moveAmt = V(.006,-.1,.4);
   let mouseIsPressed = false;
@@ -876,23 +868,23 @@ export async function initJoelGame() {
       }
     }
 
-    if(WATER_MOTION){
-      generateWave(water);
+    // if(WATER_MOTION){
+    //   generateWave(water);
       
-      for(let i=0; i<water.points.length; i++){
-        for(let j=0; j<water.points[0].length; j++){
-          const point = water.points[i][j];
-          if(point.fixed){
-            continue
-          }
-          else{
-            const nextPrevPosition = J3.clone(point.position);
-            V3.add(V3.sub(point.position,point.prevPosition,point.prevPosition),point.position, point.position);
-            point.prevPosition = nextPrevPosition;
-          }
-        }
-      }
-    }
+    //   for(let i=0; i<water.points.length; i++){
+    //     for(let j=0; j<water.points[0].length; j++){
+    //       const point = water.points[i][j];
+    //       if(point.fixed){
+    //         continue
+    //       }
+    //       else{
+    //         const nextPrevPosition = J3.clone(point.position);
+    //         V3.add(V3.sub(point.position,point.prevPosition,point.prevPosition),point.position, point.position);
+    //         point.prevPosition = nextPrevPosition;
+    //       }
+    //     }
+    //   }
+    // }
     //update points and add gravity:
     for(let point of guy.points){
 
@@ -981,10 +973,10 @@ export async function initJoelGame() {
     //adjust points to reconcile stick lengths:
     
     // const _stk = tmpStack();
-    updateSticks(sticks,STICK_ITTERATIONS);
-    if(WATER_MOTION){
-      updateSticks(water.sticks, WATER_STICK_ITTERATIONS);
-    }
+    updateSticks(guy.sticks,STICK_ITTERATIONS);
+    // if(WATER_MOTION){
+    //   updateSticks(water.sticks, WATER_STICK_ITTERATIONS);
+    // }
     function updateSticks(sticks: Stick[], itterations: number){
       for(let i = 0; i<itterations;i++){
         const randArr = randomOrderArray(sticks.length);
@@ -1018,21 +1010,21 @@ export async function initJoelGame() {
         // EM.set(point.object,PositionDef,point.position);
       }
     }
-    for(let i=0;i<water.points.length;i++){
-      for(let j=0; j<water.points[0].length; j++){
-        let point = water.points[i][j];
-        if(point.object){
-          J3.copy(point.object.position,point.position);
-        }
-        else{
-          J3.copy(water.mesh.pos[i*WATER_X_POINTS+j], point.position);
-        }
-      }
-    }
+    // for(let i=0;i<water.points.length;i++){
+    //   for(let j=0; j<water.points[0].length; j++){
+    //     let point = water.points[i][j];
+    //     if(point.object){
+    //       J3.copy(point.object.position,point.position);
+    //     }
+    //     else{
+    //       J3.copy(water.mesh.pos[i*WATER_X_POINTS+j], point.position);
+    //     }
+    //   }
+    // }
 
-    if(WATER_MOTION){
-      water.object.renderable.meshHandle.pool.updateMeshVertices(water.object.renderable.meshHandle,water.mesh);
-    }
+    // if(WATER_MOTION){
+    //   water.object.renderable.meshHandle.pool.updateMeshVertices(water.object.renderable.meshHandle,water.mesh);
+    // }
 
     // draw sticks
     for (let i = 0; i < sticks.length; i++){
