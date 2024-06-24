@@ -517,7 +517,7 @@ export async function initJoelGame() {
   const waterArr = mkWaterGrid(WATER_WIDTH,WATER_DEPTH,WATER_INCREMENT,-1*(WATER_DEPTH/6),-1*(WATER_WIDTH/2),WATER_HEIGHT);
   const WATER_X_POINTS = waterArr[0].length;
 
-  const SINE_HEIGHT = 6;
+  const SINE_HEIGHT = 1.4;
   const waterMesh = mkWaterMesh(waterArr);
   const waterTemp = mkEntity(waterMesh,V(0,0,0),1,ENDESGA16.lightBlue);
   const waterObject = await EM.whenEntityHas(waterTemp,RenderableDef);
@@ -532,7 +532,7 @@ export async function initJoelGame() {
       sineMin: waterArr[0][0].position[2] - SINE_HEIGHT,
       sineRatio: .03,
       sineUp: true,
-      point: waterArr[Math.floor(waterArr.length/2)+6][Math.floor(waterArr[0].length/2)]
+      point: waterArr[Math.floor(waterArr.length/2)-7][Math.floor(waterArr[0].length/2)-1]
     }
   } 
 
@@ -573,15 +573,21 @@ export async function initJoelGame() {
   }
 
   function generateWave(water: Water){
-    if(water.wave.sineUp){
+    if(water.wave.sineUp && water.wave.sinePos >=0){
       water.wave.sinePos += (water.wave.sineMax - water.wave.sinePos) * water.wave.sineRatio;
-      if(water.wave.sinePos > water.wave.sineMax - .08){
+      if(water.wave.sinePos > water.wave.sineMax - .038){
         water.wave.sineUp = false;
       }
     }
+    else if(water.wave.sinePos > 0){
+      water.wave.sinePos -= (water.wave.sineMax - water.wave.sinePos) * water.wave.sineRatio;
+    }
+    else if(water.wave.sineUp && water.wave.sinePos < 0){
+      water.wave.sinePos += (water.wave.sinePos - water.wave.sineMin) * water.wave.sineRatio;
+    }
     else{
       water.wave.sinePos -= (water.wave.sinePos - water.wave.sineMin) * water.wave.sineRatio;
-      if(water.wave.sinePos < water.wave.sineMin + .1){
+      if(water.wave.sinePos < water.wave.sineMin + .038){
         water.wave.sineUp = true;
       }
     }
