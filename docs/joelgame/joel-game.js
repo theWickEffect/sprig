@@ -172,6 +172,13 @@ export async function initJoelGame() {
         }
         return clusters;
     }
+    // _stk.pop();
+    //generate holds
+    // interface Hold {
+    //   entity: EntityW<[typeof PositionDef, typeof ColorDef]>;
+    //   explode?: boolean;
+    //   finish?: boolean;
+    // }
     // type Hold = EntityW<[typeof PositionDef, typeof ColorDef]>;
     const holds = generateHolds();
     function generateHolds() {

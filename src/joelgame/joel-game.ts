@@ -106,6 +106,12 @@ export module J3{
   }
 }
 
+export interface Hold {
+  entity: EntityW<[typeof PositionDef, typeof ColorDef]>;
+  explode?: boolean;
+  finish?: boolean;
+}
+
 
 
 export async function initJoelGame() {
@@ -219,11 +225,13 @@ export async function initJoelGame() {
   // _stk.pop();
     
   //generate holds
-  interface Hold {
-    entity: EntityW<[typeof PositionDef, typeof ColorDef]>;
-    explode?: boolean;
-    finish?: boolean;
-  }
+  
+  // interface Hold {
+  //   entity: EntityW<[typeof PositionDef, typeof ColorDef]>;
+  //   explode?: boolean;
+  //   finish?: boolean;
+  // }
+  
   // type Hold = EntityW<[typeof PositionDef, typeof ColorDef]>;
   const holds = generateHolds();
   function generateHolds():Hold[]{
