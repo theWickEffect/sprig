@@ -37,6 +37,7 @@ import { NonupdatableComponentDef } from "../ecs/em-components.js";
 import { AudioGraph, buildFreqDataArray, configureAnalyser, createAudioGraph } from "./audio-code.js";
 import { skyPipeline } from "../render/pipelines/std-sky.js";
 import { TreeBuilder } from "./palm-tree.js";
+import { HoldMod } from "./hold-modify.js";
 
 const DBG_GHOST = false;
 const DEBUG = false;
@@ -113,7 +114,26 @@ export interface Hold {
   finish?: boolean;
 }
 
+export interface GuyData{
+  jumpHand: Point;
+  holdHand: Point;
+  points: Point[];
+  sticks: Stick[];
+  jump: JumpData;
+  hold: Hold;
+}
+export interface JumpData{
+  scale: number;
+  outScale: number;
+  catchAcuracy: number;
+  armStretchScale: number;
+  escapeAmt: number;
+  escapeCount: number;
+  jump: boolean;
+}
+export type Point = {position: V3, prevPosition: V3, fixed: boolean, object?: EntityW<[typeof PositionDef]>};
 
+export type Stick = {pointA: Point, pointB: Point, length: number};
 
 export async function initJoelGame() {
   stdGridRender.fragOverrides!.lineSpacing1 = 8.0;
@@ -259,6 +279,7 @@ export async function initJoelGame() {
           EM.set(hold, ColorDef, ENDESGA16.lightGreen);
           break;
         } 
+        else if(i>0) holdI.explode = true;
       }while(Math.random() <.6);
     }
     return holds;
@@ -315,7 +336,7 @@ export async function initJoelGame() {
     return mkEntity(mkCubeMesh(), J3.scale(position, GUY_SCALE, false), scale * GUY_SCALE, ENDESGA16.darkGray);
   }
 
-  type Point = {position: V3, prevPosition: V3, fixed: boolean, object?: EntityW<[typeof PositionDef]>};
+  // type Point = {position: V3, prevPosition: V3, fixed: boolean, object?: EntityW<[typeof PositionDef]>};
 
   function mkPoint(e: EntityW<[typeof PositionDef]>, fixed: boolean): Point {
     return {
@@ -435,7 +456,7 @@ export async function initJoelGame() {
   
 
   //sticks connecting points: pointA, pointB, length
-  type Stick = {pointA: Point, pointB: Point, length: number}
+  // type Stick = {pointA: Point, pointB: Point, length: number}
   
   function mkStick(pointA: Point, pointB: Point): Stick{
     return {pointA, pointB, length:J3.dist(pointA.position,pointB.position)};
@@ -671,24 +692,27 @@ export async function initJoelGame() {
   const CAMERA_SPEED = .01;
   const amplitudeArr: number[] = [100,100,100,100,100,100,100,100,100];
   let maxAmp = 100;
+  let explodeCountdown = 60;
+  let holdShakePos = V(0,0,0);
+  let explodeArr: Point[] = [];
 
-  interface GuyData{
-    jumpHand: Point;
-    holdHand: Point;
-    points: Point[];
-    sticks: Stick[];
-    jump: JumpData;
-    hold: Hold;
-  }
-  interface JumpData{
-    scale: number;
-    outScale: number;
-    catchAcuracy: number;
-    armStretchScale: number;
-    escapeAmt: number;
-    escapeCount: number;
-    jump: boolean;
-  }
+  // interface GuyData{
+  //   jumpHand: Point;
+  //   holdHand: Point;
+  //   points: Point[];
+  //   sticks: Stick[];
+  //   jump: JumpData;
+  //   hold: Hold;
+  // }
+  // interface JumpData{
+  //   scale: number;
+  //   outScale: number;
+  //   catchAcuracy: number;
+  //   armStretchScale: number;
+  //   escapeAmt: number;
+  //   escapeCount: number;
+  //   jump: boolean;
+  // }
 
   const guy: GuyData = {
     jumpHand: rh,
@@ -802,6 +826,22 @@ export async function initJoelGame() {
       startGame();
     }
 
+    if(guy.hold.explode){
+      
+      if(explodeCountdown>0){
+        explodeCountdown--;
+        HoldMod.shake(guy, holdShakePos);
+      }
+      else if(explodeCountdown===0){
+        explodeArr = HoldMod.mkExplodeArr(guy);
+        explodeCountdown--;
+        guy.holdHand.fixed = false;
+      }
+      else{
+        HoldMod.updateExplodeArr(explodeArr, GRAVITY);
+      }
+    }
+
     if(!guy.jump.jump && !mouseIsPressed && inputs.ldown){
       mouseIsPressed = true;
       InitJump();
@@ -901,6 +941,8 @@ export async function initJoelGame() {
       for(const hold of holds){
         if(J3.dist(guy.jumpHand.position, hold.catchPoint) < guy.jump.catchAcuracy){
           J3.copy(guy.jumpHand.position, hold.catchPoint);
+          guy.hold = hold;
+          if(hold.explode) J3.copy(holdShakePos, hold.entity.position);
           // jumpHand.position = V3.clone(catchPoint);
           // guy.jumpHand.prevPosition = guy.jumpHand.position;
           J3.copy(guy.jumpHand.prevPosition,guy.jumpHand.position);

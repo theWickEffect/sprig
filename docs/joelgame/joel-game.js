@@ -24,6 +24,7 @@ import { InputsDef } from "../input/inputs.js";
 import { buildFreqDataArray, configureAnalyser, createAudioGraph } from "./audio-code.js";
 import { skyPipeline } from "../render/pipelines/std-sky.js";
 import { TreeBuilder } from "./palm-tree.js";
+import { HoldMod } from "./hold-modify.js";
 const DBG_GHOST = false;
 const DEBUG = false;
 // tmpStack()
@@ -205,6 +206,8 @@ export async function initJoelGame() {
                     EM.set(hold, ColorDef, ENDESGA16.lightGreen);
                     break;
                 }
+                else if (i > 0)
+                    holdI.explode = true;
             } while (Math.random() < .6);
         }
         return holds;
@@ -251,6 +254,7 @@ export async function initJoelGame() {
     function mkGrayCube(position, scale) {
         return mkEntity(mkCubeMesh(), J3.scale(position, GUY_SCALE, false), scale * GUY_SCALE, ENDESGA16.darkGray);
     }
+    // type Point = {position: V3, prevPosition: V3, fixed: boolean, object?: EntityW<[typeof PositionDef]>};
     function mkPoint(e, fixed) {
         return {
             // position: J3.clone(e.position), 
@@ -357,6 +361,8 @@ export async function initJoelGame() {
     // left knee
     let lk = mkGCPoint(V(-4, 0, 2), .05, false);
     bodyPoints.push(lk);
+    //sticks connecting points: pointA, pointB, length
+    // type Stick = {pointA: Point, pointB: Point, length: number}
     function mkStick(pointA, pointB) {
         return { pointA, pointB, length: J3.dist(pointA.position, pointB.position) };
     }
@@ -554,6 +560,26 @@ export async function initJoelGame() {
     const CAMERA_SPEED = .01;
     const amplitudeArr = [100, 100, 100, 100, 100, 100, 100, 100, 100];
     let maxAmp = 100;
+    let explodeCountdown = 60;
+    let holdShakePos = V(0, 0, 0);
+    let explodeArr = [];
+    // interface GuyData{
+    //   jumpHand: Point;
+    //   holdHand: Point;
+    //   points: Point[];
+    //   sticks: Stick[];
+    //   jump: JumpData;
+    //   hold: Hold;
+    // }
+    // interface JumpData{
+    //   scale: number;
+    //   outScale: number;
+    //   catchAcuracy: number;
+    //   armStretchScale: number;
+    //   escapeAmt: number;
+    //   escapeCount: number;
+    //   jump: boolean;
+    // }
     const guy = {
         jumpHand: rh,
         holdHand: lh,
@@ -658,6 +684,20 @@ export async function initJoelGame() {
         if (inputs.keyClicks['m']) {
             startGame();
         }
+        if (guy.hold.explode) {
+            if (explodeCountdown > 0) {
+                explodeCountdown--;
+                HoldMod.shake(guy, holdShakePos);
+            }
+            else if (explodeCountdown === 0) {
+                explodeArr = HoldMod.mkExplodeArr(guy);
+                explodeCountdown--;
+                guy.holdHand.fixed = false;
+            }
+            else {
+                HoldMod.updateExplodeArr(explodeArr, GRAVITY);
+            }
+        }
         if (!guy.jump.jump && !mouseIsPressed && inputs.ldown) {
             mouseIsPressed = true;
             InitJump();
@@ -747,6 +787,9 @@ export async function initJoelGame() {
             for (const hold of holds) {
                 if (J3.dist(guy.jumpHand.position, hold.catchPoint) < guy.jump.catchAcuracy) {
                     J3.copy(guy.jumpHand.position, hold.catchPoint);
+                    guy.hold = hold;
+                    if (hold.explode)
+                        J3.copy(holdShakePos, hold.entity.position);
                     // jumpHand.position = V3.clone(catchPoint);
                     // guy.jumpHand.prevPosition = guy.jumpHand.position;
                     J3.copy(guy.jumpHand.prevPosition, guy.jumpHand.position);
