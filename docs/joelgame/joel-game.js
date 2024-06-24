@@ -25,6 +25,7 @@ import { buildFreqDataArray, configureAnalyser, createAudioGraph } from "./audio
 import { skyPipeline } from "../render/pipelines/std-sky.js";
 import { TreeBuilder } from "./palm-tree.js";
 import { HoldMod } from "./hold-modify.js";
+import { DeadDef } from "../ecs/delete.js";
 const DBG_GHOST = false;
 const DEBUG = false;
 // tmpStack()
@@ -206,8 +207,10 @@ export async function initJoelGame() {
                     EM.set(hold, ColorDef, ENDESGA16.lightGreen);
                     break;
                 }
-                else if (i > 0)
+                else if (i > 0 && Math.random() < .2) {
                     holdI.explode = true;
+                    J3.copy(hold.color, V(.05, .05, .05));
+                }
             } while (Math.random() < .6);
         }
         return holds;
@@ -527,14 +530,14 @@ export async function initJoelGame() {
             }
         }
     }
-    function updateHoldColorsRand() {
-        let randColor = [Math.random(), Math.random(), Math.random()];
-        for (let i = 0; i < holds.length - 1; i++) {
-            holds[i].entity.color[0] = randColor[0];
-            holds[i].entity.color[1] = randColor[1];
-            holds[i].entity.color[2] = randColor[2];
-        }
-    }
+    // function updateHoldColorsRand(){
+    //   let randColor = [Math.random(), Math.random(), Math.random()];
+    //   for(let i=0;i<holds.length-1;i++){
+    //     holds[i].entity.color[0] = randColor[0];
+    //     holds[i].entity.color[1] = randColor[1];
+    //     holds[i].entity.color[2] = randColor[2];
+    //   }
+    // }
     function updateHoldColorsAllRand() {
         for (let i = 0; i < holds.length - 1; i++) {
             holds[i].entity.color[0] = Math.random();
@@ -563,6 +566,7 @@ export async function initJoelGame() {
     let explodeCountdown = 60;
     let holdShakePos = V(0, 0, 0);
     let explodeArr = [];
+    let deadHold;
     // interface GuyData{
     //   jumpHand: Point;
     //   holdHand: Point;
@@ -683,6 +687,13 @@ export async function initJoelGame() {
         //to do: add game over check
         if (inputs.keyClicks['m']) {
             startGame();
+            if (explodeCountdown < 0) {
+                explodeCountdown = 60;
+                if (deadHold) {
+                    EM.removeComponent(deadHold.id, DeadDef);
+                    // deadHold.dead.processed = false;
+                }
+            }
         }
         if (guy.hold.explode) {
             if (explodeCountdown > 0) {
@@ -691,8 +702,12 @@ export async function initJoelGame() {
             }
             else if (explodeCountdown === 0) {
                 explodeArr = HoldMod.mkExplodeArr(guy);
+                EM.set(guy.hold.entity, DeadDef);
+                guy.hold.entity.dead.processed = true;
+                // guy.hold.entity.dead.processed = false;
                 explodeCountdown--;
                 guy.holdHand.fixed = false;
+                deadHold = guy.hold.entity;
             }
             else {
                 HoldMod.updateExplodeArr(explodeArr, GRAVITY);
@@ -870,7 +885,7 @@ export async function initJoelGame() {
             // console.log(controll);
             if (colorChangeCount > COLOR_CHANGE_OPEN && controll) {
                 colorChangeCount = 0;
-                updateHoldColorsRand();
+                HoldMod.updateColorsRand(holds);
             }
         }
     });

@@ -55,5 +55,16 @@ export var HoldMod;
         // console.log("shaking");
     }
     HoldMod.shake = shake;
+    function updateColorsRand(holds) {
+        let randColor = [Math.random(), Math.random(), Math.random()];
+        for (let i = 0; i < holds.length - 1; i++) {
+            if (!holds[i].explode) {
+                holds[i].entity.color[0] = randColor[0];
+                holds[i].entity.color[1] = randColor[1];
+                holds[i].entity.color[2] = randColor[2];
+            }
+        }
+    }
+    HoldMod.updateColorsRand = updateColorsRand;
 })(HoldMod || (HoldMod = {}));
 //# sourceMappingURL=hold-modify.js.map
