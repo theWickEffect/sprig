@@ -176,6 +176,7 @@ export async function initJoelGame() {
     CLUSTER_SIZE: number;
     hasTrees: boolean;
     wallColor: V3;
+    oceanColor: V3;
   }
 
   const world: worldParams = {
@@ -186,6 +187,7 @@ export async function initJoelGame() {
     CLUSTER_SIZE: 4,
     hasTrees: true,
     wallColor: V(1,.1,0),
+    oceanColor: V(0,0,.6),
   }
 
 
@@ -217,7 +219,12 @@ export async function initJoelGame() {
   // _stk.pop();
     
   //generate holds
-  type Hold = EntityW<[typeof PositionDef, typeof ColorDef]>;
+  interface Hold {
+    entity: EntityW<[typeof PositionDef, typeof ColorDef]>;
+    explode?: boolean;
+    finish?: boolean;
+  }
+  // type Hold = EntityW<[typeof PositionDef, typeof ColorDef]>;
   const holds = generateHolds();
   function generateHolds():Hold[]{
     const holds: Hold[] = [];
@@ -234,7 +241,10 @@ export async function initJoelGame() {
         EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, Math.PI*.6, 0));
         quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
         EM.set(hold, ScaleDef, V(Math.random()+.5,Math.random()+.5,Math.random()+.5))
-        holds.push(hold)
+        const holdI: Hold = {
+          entity: hold,
+        }
+        holds.push(holdI)
         if(i===clusters.length-1){
           EM.set(hold, ColorDef, ENDESGA16.lightGreen);
           break;
@@ -249,7 +259,7 @@ export async function initJoelGame() {
   function getHoldCatchPoints(): V3[]{
     let catchPoints: V3[] = [];
     for(const hold of holds){
-      catchPoints.push(V(hold.position[0], hold.position[1] - 2, hold.position[2]));
+      catchPoints.push(V(hold.entity.position[0], hold.entity.position[1] - 2, hold.entity.position[2]));
     }
     return catchPoints;
   }
@@ -278,7 +288,7 @@ export async function initJoelGame() {
   //generate guy
   const GUY_SCALE = .75;
   const GUY_LH_ZERO = V(4.2,0,-5);
-  let GUY_LH_START = V(holds[0].position[0], holds[0].position[1] - 2, holds[0].position[2])
+  let GUY_LH_START = V(holds[0].entity.position[0], holds[0].entity.position[1] - 2, holds[0].entity.position[2])
   // GUY_LH_START[1] -= 3;
   const GUY_OFFSET = J3.add(GUY_LH_START,GUY_LH_ZERO);
   
@@ -581,36 +591,36 @@ export async function initJoelGame() {
     const negChange = changeRate * -1;
     if(greenUp){
       colorChange(1,changeRate);
-      if(holds[0].color[1] > maxSaturation){
+      if(holds[0].entity.color[1] > maxSaturation){
         greenUp = false;
       }
     } 
-    else if(holds[0].color[1] > 0){
+    else if(holds[0].entity.color[1] > 0){
       colorChange(1,negChange);
-      if(holds[0].color[1] === 0){
+      if(holds[0].entity.color[1] === 0){
         blueUp = true;
       }
     }
     else if(blueUp){
       colorChange(2,changeRate);
-      if(holds[0].color[2] > maxSaturation){
+      if(holds[0].entity.color[2] > maxSaturation){
         blueUp = false;
       }
     } 
     else{
       colorChange(2,negChange);
-      if(holds[0].color[2] === 0){
+      if(holds[0].entity.color[2] === 0){
         greenUp = true;
       }
     }
 
     function colorChange(colorIndex: 0 | 1 | 2, change: number){
-      let newColor = holds[0].color[colorIndex] + change
+      let newColor = holds[0].entity.color[colorIndex] + change
       if(newColor < 0){
         newColor = 0;
       }
       for(let i=0;i<holds.length-1; i++){
-        holds[i].color[colorIndex] = newColor;
+        holds[i].entity.color[colorIndex] = newColor;
       }
     }
   }
@@ -618,17 +628,17 @@ export async function initJoelGame() {
   function updateHoldColorsRand(){
     let randColor = [Math.random(), Math.random(), Math.random()];
     for(let i=0;i<holds.length-1;i++){
-      holds[i].color[0] = randColor[0];
-      holds[i].color[1] = randColor[1];
-      holds[i].color[2] = randColor[2];
+      holds[i].entity.color[0] = randColor[0];
+      holds[i].entity.color[1] = randColor[1];
+      holds[i].entity.color[2] = randColor[2];
     }
   }
 
   function updateHoldColorsAllRand(){
     for(let i=0;i<holds.length-1;i++){
-      holds[i].color[0] = Math.random();
-      holds[i].color[1] = Math.random();
-      holds[i].color[2] = Math.random();
+      holds[i].entity.color[0] = Math.random();
+      holds[i].entity.color[1] = Math.random();
+      holds[i].entity.color[2] = Math.random();
     }
   }
   
