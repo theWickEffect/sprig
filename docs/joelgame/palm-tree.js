@@ -8,6 +8,23 @@ import { createEmptyMesh } from "../wood/wood.js";
 import { J3 } from "./joel-game.js";
 export var TreeBuilder;
 (function (TreeBuilder) {
+    function mkWater(size = 10000, zHt = .1, color = V(.086, .969, .925), pos = V(0, 0, 0)) {
+        const waterRaw = createEmptyMesh("water");
+        waterRaw.surfaceIds = [];
+        const waterMesh = waterRaw;
+        waterMesh.usesProvoking = true;
+        waterMesh.pos.push(V(size, size, zHt));
+        waterMesh.pos.push(V(-1 * size, size, zHt));
+        waterMesh.pos.push(V(-1 * size, -1 * size, zHt));
+        waterMesh.pos.push(V(size, -1 * size, zHt));
+        waterMesh.colors.push(color);
+        waterMesh.quad.push(V(0, 1, 2, 3));
+        waterMesh.surfaceIds.push(1);
+        let water = EM.mk();
+        EM.set(water, RenderableConstructDef, waterMesh);
+        EM.set(water, PositionDef, pos);
+    }
+    TreeBuilder.mkWater = mkWater;
     function mkIsland2(xWid = 40, yDep = 25, zHt = 3, pos = V(0, 0, 0), color = V(.7, .2, 0)) {
         const verts = [];
         for (let y = 0; y < yDep; y++) {

@@ -228,6 +228,7 @@ export async function initJoelGame() {
     //make island:
     const islandPos = V(world.wallWidth * -.5 - 10, -5, 0);
     TreeBuilder.mkIsland2(world.wallWidth + 20, 25, 1.5, islandPos);
+    TreeBuilder.mkWater();
     if (world.hasTrees) {
         TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4, 0, 0));
     }
