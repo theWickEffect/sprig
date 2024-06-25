@@ -8,7 +8,7 @@ import { createEmptyMesh } from "../wood/wood.js";
 import { J3 } from "./joel-game.js";
 export var TreeBuilder;
 (function (TreeBuilder) {
-    function mkWater(size = 10000, zHt = .1, color = V(.086, .969, .925), pos = V(0, 0, 0)) {
+    function mkWater(color = V(.086, .969, .925), size = 10000, zHt = .1, pos = V(0, 0, 0)) {
         const waterRaw = createEmptyMesh("water");
         waterRaw.surfaceIds = [];
         const waterMesh = waterRaw;
@@ -25,6 +25,41 @@ export var TreeBuilder;
         EM.set(water, PositionDef, pos);
     }
     TreeBuilder.mkWater = mkWater;
+    function mkWater2(color = V(.086, .969, .925), size = 2000, increment = 20, zHt = .1, pos = V(0, 0, 0)) {
+        const waterRaw = createEmptyMesh("water");
+        waterRaw.surfaceIds = [];
+        const waterMesh = waterRaw;
+        waterMesh.usesProvoking = true;
+        for (let y = -1 * size; y <= size; y += increment) {
+            waterMesh.pos.push(V(-size, y, zHt));
+            waterMesh.pos.push(V(size, y, zHt));
+            if (y > -1 * size) {
+                const end = waterMesh.pos.length - 1;
+                waterMesh.quad.push(V(end, end - 1, end - 3, end - 2));
+                waterMesh.colors.push(J3.clone(color));
+                waterMesh.surfaceIds.push(1);
+                color[0] += Math.random() * .05 - .025;
+                color[1] += Math.random() * .05 - .025;
+                color[2] += Math.random() * .05 - .025;
+                if (color[0] > 1)
+                    color[0] = 1;
+                if (color[0] < 0)
+                    color[0] = 0;
+                if (color[1] > 1)
+                    color[1] = 1;
+                if (color[1] < 0)
+                    color[1] = 0;
+                if (color[2] > 1)
+                    color[2] = 1;
+                if (color[2] < 0)
+                    color[2] = 0;
+            }
+        }
+        let water = EM.mk();
+        EM.set(water, RenderableConstructDef, waterMesh);
+        EM.set(water, PositionDef, pos);
+    }
+    TreeBuilder.mkWater2 = mkWater2;
     function mkIsland2(xWid = 40, yDep = 25, zHt = 3, pos = V(0, 0, 0), color = V(.7, .2, 0)) {
         const verts = [];
         for (let y = 0; y < yDep; y++) {

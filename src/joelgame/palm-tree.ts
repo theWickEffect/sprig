@@ -13,9 +13,9 @@ import { J3 } from "./joel-game.js";
 
 export module TreeBuilder{
     export function mkWater(
+        color: V3 = V(.086,.969,.925),
         size: number = 10000,
         zHt: number = .1, 
-        color: V3 = V(.086,.969,.925),
         pos: V3 = V(0,0,0),
         ){
         const waterRaw = createEmptyMesh("water");
@@ -30,6 +30,41 @@ export module TreeBuilder{
         waterMesh.quad.push(V(0,1,2,3));
         waterMesh.surfaceIds.push(1);
 
+        let water = EM.mk();
+        EM.set(water, RenderableConstructDef, waterMesh);
+        EM.set(water,PositionDef,pos);
+    }
+    export function mkWater2(
+        color: V3 = V(.086,.969,.925),
+        size: number = 2000,
+        increment: number = 20,
+        zHt: number = .1, 
+        pos: V3 = V(0,0,0),
+        ){
+        const waterRaw = createEmptyMesh("water");
+        waterRaw.surfaceIds = [];
+        const waterMesh = waterRaw as Mesh;
+        waterMesh.usesProvoking = true;
+        for(let y = -1*size; y<= size; y+=increment){
+            waterMesh.pos.push(V(-size,y,zHt));
+            waterMesh.pos.push(V(size,y,zHt));
+            if(y> -1*size){
+                const end = waterMesh.pos.length-1
+                waterMesh.quad.push(V(end,end-1,end-3,end-2));
+                waterMesh.colors.push(J3.clone(color));
+                waterMesh.surfaceIds.push(1);
+                color[0] += Math.random() * .05 -.025;
+                color[1] += Math.random() * .05 -.025;
+                color[2] += Math.random() * .05 -.025;
+                if(color[0]>1) color[0] = 1;
+                if(color[0]<0) color[0] = 0;
+                if(color[1]>1) color[1] = 1;
+                if(color[1]<0) color[1] = 0;
+                if(color[2]>1) color[2] = 1;
+                if(color[2]<0) color[2] = 0;
+            }
+        }
+        
         let water = EM.mk();
         EM.set(water, RenderableConstructDef, waterMesh);
         EM.set(water,PositionDef,pos);
