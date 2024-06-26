@@ -26,6 +26,7 @@ import { skyPipeline } from "../render/pipelines/std-sky.js";
 import { TreeBuilder } from "./palm-tree.js";
 import { HoldMod } from "./hold-modify.js";
 import { DeadDef } from "../ecs/delete.js";
+import { PowerMeter } from "./power-meter.js";
 const DBG_GHOST = false;
 const DEBUG = false;
 // tmpStack()
@@ -557,6 +558,7 @@ export async function initJoelGame() {
     const COLOR_CHANGE_OPEN = 14;
     const GRAVITY = .008;
     const STICK_ITTERATIONS = 20;
+    const powerMeter = await PowerMeter.mk();
     // const WATER_STICK_ITTERATIONS = 10;
     // const WATER_MOTION = true;
     let waitCount = 60;
@@ -598,6 +600,7 @@ export async function initJoelGame() {
         sticks: sticks,
         hold: holds[0],
         jump: {
+            ok: true,
             scale: .004,
             outScale: -.15,
             catchAcuracy: 1.75,
@@ -662,6 +665,7 @@ export async function initJoelGame() {
         guy.jumpHand.fixed = false;
         guy.holdHand.fixed = true;
         guy.jump.jump = false;
+        guy.jump.ok = true;
         guy.hold = holds[0];
         J3.copy(guy.holdHand.position, guy.hold.catchPoint);
         J3.copy(guy.holdHand.prevPosition, guy.holdHand.position);
@@ -703,6 +707,7 @@ export async function initJoelGame() {
             }
         }
         if (guy.hold.explode) {
+            guy.jump.ok = false;
             if (explodeCountdown > 0) {
                 explodeCountdown--;
                 HoldMod.shake(guy, holdShakePos);
@@ -720,17 +725,22 @@ export async function initJoelGame() {
                 HoldMod.updateExplodeArr(explodeArr, GRAVITY);
             }
         }
-        if (!guy.jump.jump && !mouseIsPressed && inputs.ldown) {
+        if (guy.jump.ok && !guy.jump.jump && !mouseIsPressed && inputs.ldown) {
             mouseIsPressed = true;
             InitJump();
         }
         else if (!guy.jump.jump && mouseIsPressed) {
             if (inputs.ldown) {
                 DragJump();
+                const a = mouseStart[0] - mousePosition[0];
+                const b = mouseStart[1] - mousePosition[1];
+                const power = Math.sqrt(a * a + b * b);
+                PowerMeter.updatePower(power, powerMeter);
             }
             else {
                 ReleaseJump();
                 mouseIsPressed = false;
+                PowerMeter.updatePower(0, powerMeter);
             }
         }
         // if(WATER_MOTION){
@@ -895,6 +905,7 @@ export async function initJoelGame() {
                 HoldMod.updateColorsRand(holds);
             }
         }
+        PowerMeter.updatePos(cameraPosition, powerMeter);
     });
     // gizmo
     // addWorldGizmo(V(-20, 0, 0), 5);
