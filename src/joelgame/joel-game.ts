@@ -113,6 +113,7 @@ export interface Hold {
   entity: EntityW<[typeof PositionDef, typeof ColorDef]>;
   catchPoint: V3;
   explode?: boolean;
+  choss?: boolean;
   finish?: boolean;
 }
 
@@ -209,6 +210,10 @@ export async function initJoelGame() {
     hasTrees: boolean;
     wallColor: V3;
     oceanColor: V3;
+    explodeChance: number;
+    chossChance: number;
+    explodeCountdown: number;
+    chossCountdown: number;
   }
 
   const world: worldParams = {
@@ -220,6 +225,11 @@ export async function initJoelGame() {
     hasTrees: true,
     wallColor: V(1,.1,0),
     oceanColor: V(0,0,.6),
+    explodeChance: .20,
+    chossChance: .32,
+    explodeCountdown: 35,
+    chossCountdown: 75,
+
   }
 
 
@@ -282,11 +292,16 @@ export async function initJoelGame() {
         holds.push(holdI)
         if(i===clusters.length-1){
           EM.set(hold, ColorDef, ENDESGA16.lightGreen);
+          holdI.finish = true;
           break;
         } 
-        else if(i>0 && Math.random() < .2) {
+        else if(i>0 && Math.random() < world.explodeChance) {
           holdI.explode = true;
           J3.copy(hold.color,V(.05,.05,.05));
+        }
+        else if(i>0 && Math.random() < world.chossChance) {
+          holdI.choss = true;
+          J3.copy(hold.color,V(0.631, 0.471, 0.322));
         }
       }while(Math.random() <.6);
     }
@@ -694,7 +709,8 @@ export async function initJoelGame() {
   const CAMERA_SPEED = .01;
   const amplitudeArr: number[] = [100,100,100,100,100,100,100,100,100];
   let maxAmp = 100;
-  let explodeCountdown = 60;
+  let explodeCountdown = world.explodeCountdown;
+  let chossCountdown = world.chossCountdown;
   let holdShakePos = V(0,0,0);
   let explodeArr: Point[] = [];
   let deadHold: EntityW<[typeof DeadDef]>;
@@ -862,7 +878,29 @@ export async function initJoelGame() {
         HoldMod.updateExplodeArr(explodeArr, GRAVITY);
       }
     }
-    
+    if(guy.hold.choss){
+      
+      if(chossCountdown>0){
+        chossCountdown--;
+        HoldMod.shake(guy, holdShakePos);
+      }
+      else if(chossCountdown===0){
+        // if(!explodeArr){
+          explodeArr = HoldMod.mkExplodeArr(guy);
+        // }
+        EM.set(guy.hold.entity,DeadDef)
+        guy.hold.entity.dead.processed = true;
+        // guy.hold.entity.dead.processed = false;
+
+        chossCountdown--;
+        guy.holdHand.fixed = false;
+        deadHold = guy.hold.entity;
+      }
+      else{
+        HoldMod.updateExplodeArr(explodeArr, GRAVITY);
+      }
+    }
+    else chossCountdown = world.chossCountdown;
 
     if(guy.jump.ok && !guy.jump.jump && !mouseIsPressed && inputs.ldown){
       mouseIsPressed = true;
@@ -969,7 +1007,7 @@ export async function initJoelGame() {
         if(J3.dist(guy.jumpHand.position, hold.catchPoint) < guy.jump.catchAcuracy){
           J3.copy(guy.jumpHand.position, hold.catchPoint);
           guy.hold = hold;
-          if(hold.explode) J3.copy(holdShakePos, hold.entity.position);
+          if(hold.explode || hold.choss) J3.copy(holdShakePos, hold.entity.position);
           // jumpHand.position = V3.clone(catchPoint);
           // guy.jumpHand.prevPosition = guy.jumpHand.position;
           J3.copy(guy.jumpHand.prevPosition,guy.jumpHand.position);
