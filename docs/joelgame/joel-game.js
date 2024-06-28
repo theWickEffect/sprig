@@ -208,16 +208,17 @@ export async function initJoelGame() {
                     catchPoint: V(hold.position[0], hold.position[1] - 2, hold.position[2]),
                 };
                 holds.push(holdI);
+                const holdTypeIndicator = Math.random();
                 if (i === clusters.length - 1) {
                     EM.set(hold, ColorDef, ENDESGA16.lightGreen);
                     holdI.finish = true;
                     break;
                 }
-                else if (i > 0 && Math.random() < world.explodeChance) {
+                else if (i > 0 && holdTypeIndicator < world.explodeChance) {
                     holdI.explode = true;
                     J3.copy(hold.color, V(.05, .05, .05));
                 }
-                else if (i > 0 && Math.random() < world.chossChance) {
+                else if (i > 0 && holdTypeIndicator < world.explodeChance + world.chossChance) {
                     holdI.choss = true;
                     J3.copy(hold.color, V(0.631, 0.471, 0.322));
                 }
@@ -738,7 +739,6 @@ export async function initJoelGame() {
                 const dh = guy.hold.entity;
                 EM.set(dh, DeadDef);
                 dh.dead.processed = true;
-                // deadHolds[deadHolds.length] = dh;
                 deadHolds.push(dh);
                 explodeCountdown--;
                 guy.holdHand.fixed = false;
@@ -763,7 +763,6 @@ export async function initJoelGame() {
                 const dh = guy.hold.entity;
                 EM.set(dh, DeadDef);
                 dh.dead.processed = true;
-                // deadHolds[deadHolds.length] = dh;
                 deadHolds.push(dh);
                 chossCountdown--;
                 guy.holdHand.fixed = false;
