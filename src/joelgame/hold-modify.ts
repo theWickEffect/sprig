@@ -92,5 +92,5 @@ export module HoldMod {
                 holds[i].entity.color[2] = randColor[2];
             }
         }
-      }
+    }
 }
