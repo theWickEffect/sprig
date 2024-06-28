@@ -281,13 +281,13 @@ export async function initJoelGame() {
     function mkGCPoint(position, scale = .2, fixed = false) {
         return mkPoint(mkGrayCube(J3.add(position, GUY_OFFSET, false), scale), fixed);
     }
-    function mkPointNoObject(position, fixed = false) {
-        return {
-            position: J3.clone(position),
-            prevPosition: position,
-            fixed: fixed
-        };
-    }
+    // function mkPointNoObject(position:V3, fixed: boolean = false): Point {
+    //   return {
+    //     position: J3.clone(position), 
+    //     prevPosition: position,
+    //     fixed: fixed
+    //   }
+    // }
     // function mkWaterGrid(xWid: number, yDep: number, increment: number, yStart: number, xStart: number, zPos: number = 0): Point[][]{
     //   const xNum = Math.floor(xWid/increment);
     //   const yNum = Math.floor(yDep/increment);
@@ -585,7 +585,8 @@ export async function initJoelGame() {
     let chossCountdown = world.chossCountdown;
     let holdShakePos = V(0, 0, 0);
     let explodeArr = [];
-    let deadHold;
+    let explodeArrDead = false;
+    let deadHolds = [];
     // interface GuyData{
     //   jumpHand: Point;
     //   holdHand: Point;
@@ -708,12 +709,16 @@ export async function initJoelGame() {
         //to do: add game over check
         if (inputs.keyClicks['m']) {
             startGame();
-            if (explodeCountdown < 0) {
-                explodeCountdown = 60;
-                if (deadHold) {
-                    EM.removeComponent(deadHold.id, DeadDef);
-                    // deadHold.dead.processed = false;
-                }
+            if (explodeArr.length > 0) {
+                HoldMod.killExplodeArr(explodeArr);
+                explodeArrDead = true;
+            }
+            explodeCountdown = world.explodeCountdown;
+            chossCountdown = world.chossCountdown;
+            while (deadHolds.length > 0) {
+                const dh = deadHolds.pop();
+                if (dh)
+                    EM.removeComponent(dh.id, DeadDef);
             }
         }
         if (guy.hold.explode) {
@@ -723,13 +728,20 @@ export async function initJoelGame() {
                 HoldMod.shake(guy, holdShakePos);
             }
             else if (explodeCountdown === 0) {
-                explodeArr = HoldMod.mkExplodeArr(guy);
-                EM.set(guy.hold.entity, DeadDef);
-                guy.hold.entity.dead.processed = true;
-                // guy.hold.entity.dead.processed = false;
+                if (explodeArr.length === 0) {
+                    explodeArr = HoldMod.mkExplodeArr(guy);
+                }
+                else {
+                    HoldMod.reviveExplodeArr(explodeArr, guy, explodeArrDead);
+                    explodeArrDead = false;
+                }
+                const dh = guy.hold.entity;
+                EM.set(dh, DeadDef);
+                dh.dead.processed = true;
+                // deadHolds[deadHolds.length] = dh;
+                deadHolds.push(dh);
                 explodeCountdown--;
                 guy.holdHand.fixed = false;
-                deadHold = guy.hold.entity;
             }
             else {
                 HoldMod.updateExplodeArr(explodeArr, GRAVITY);
@@ -741,15 +753,20 @@ export async function initJoelGame() {
                 HoldMod.shake(guy, holdShakePos);
             }
             else if (chossCountdown === 0) {
-                // if(!explodeArr){
-                explodeArr = HoldMod.mkExplodeArr(guy);
-                // }
-                EM.set(guy.hold.entity, DeadDef);
-                guy.hold.entity.dead.processed = true;
-                // guy.hold.entity.dead.processed = false;
+                if (explodeArr.length === 0) {
+                    explodeArr = HoldMod.mkExplodeArr(guy);
+                }
+                else {
+                    HoldMod.reviveExplodeArr(explodeArr, guy, explodeArrDead);
+                    explodeArrDead = false;
+                }
+                const dh = guy.hold.entity;
+                EM.set(dh, DeadDef);
+                dh.dead.processed = true;
+                // deadHolds[deadHolds.length] = dh;
+                deadHolds.push(dh);
                 chossCountdown--;
                 guy.holdHand.fixed = false;
-                deadHold = guy.hold.entity;
             }
             else {
                 HoldMod.updateExplodeArr(explodeArr, GRAVITY);

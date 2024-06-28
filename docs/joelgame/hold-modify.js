@@ -1,4 +1,5 @@
 import { ColorDef } from "../color/color-ecs.js";
+import { DeadDef } from "../ecs/delete.js";
 import { EM } from "../ecs/ecs.js";
 import { V } from "../matrix/sprig-matrix.js";
 import { TetraMesh } from "../meshes/mesh-list.js";
@@ -7,11 +8,33 @@ import { RenderableConstructDef } from "../render/renderer-ecs.js";
 import { J3, } from "./joel-game.js";
 export var HoldMod;
 (function (HoldMod) {
+    const force = 1.1;
+    const scale = .015;
+    const explodeObjectCount = 100;
+    function killExplodeArr(explodeArr) {
+        for (let i = 0; i < explodeArr.length; i++) {
+            let shrap = explodeArr[i].object;
+            EM.set(shrap, DeadDef);
+            shrap.dead.processed = true;
+        }
+    }
+    HoldMod.killExplodeArr = killExplodeArr;
+    function reviveExplodeArr(explodeArr, guy, dead) {
+        const startPos = guy.hold.entity.position;
+        for (let i = 0; i < explodeArr.length; i++) {
+            let shrapPoint = explodeArr[i];
+            if (dead) {
+                EM.removeComponent(shrapPoint.object.id, DeadDef);
+            }
+            J3.copy(shrapPoint.position, startPos);
+            shrapPoint.prevPosition[0] = startPos[0] - .5 * force + Math.random() * force;
+            shrapPoint.prevPosition[1] = startPos[1] - .5 * force + Math.random() * force;
+            shrapPoint.prevPosition[2] = startPos[2] - .5 * force + Math.random() * force;
+        }
+    }
+    HoldMod.reviveExplodeArr = reviveExplodeArr;
     function mkExplodeArr(guy) {
         const startPoint = guy.hold.entity.position;
-        const force = 1.1;
-        const scale = .015;
-        const explodeObjectCount = 100;
         const explodeArr = [];
         for (let i = 0; i < explodeObjectCount; i++) {
             const piece = EM.mk();

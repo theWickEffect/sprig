@@ -1,5 +1,7 @@
 import { ColorDef } from "../color/color-ecs.js";
+import { DeadDef } from "../ecs/delete.js";
 import { EM } from "../ecs/ecs.js";
+import { EntityW } from "../ecs/em-entities.js";
 import { V, V3 } from "../matrix/sprig-matrix.js";
 import { TetraMesh } from "../meshes/mesh-list.js";
 import { PositionDef, RotationDef, ScaleDef } from "../physics/transform.js";
@@ -9,11 +11,34 @@ import { GuyData, Hold, J3, Point, } from "./joel-game.js";
 
 
 export module HoldMod {
+
+    const force = 1.1;
+    const scale = .015;
+    const explodeObjectCount = 100;
+
+    export function killExplodeArr(explodeArr: Point[]){
+        for(let i=0; i<explodeArr.length; i++){
+            let shrap = explodeArr[i].object;
+            EM.set(shrap,DeadDef);
+            shrap.dead.processed = true;
+        }
+    }
+    export function reviveExplodeArr(explodeArr: Point[], guy: GuyData, dead: boolean){
+        const startPos = guy.hold.entity.position;
+        for(let i=0; i<explodeArr.length; i++){
+            let shrapPoint = explodeArr[i];
+            if(dead){
+                EM.removeComponent(shrapPoint.object.id,DeadDef);
+            }
+            J3.copy(shrapPoint.position, startPos);
+            shrapPoint.prevPosition[0] = startPos[0] - .5 * force + Math.random() * force;
+            shrapPoint.prevPosition[1] = startPos[1] - .5 * force + Math.random() * force;
+            shrapPoint.prevPosition[2] = startPos[2] - .5 * force + Math.random() * force;
+        }
+
+    }
     export function mkExplodeArr(guy: GuyData): Point[]{
         const startPoint = guy.hold.entity.position;
-        const force = 1.1;
-        const scale = .015;
-        const explodeObjectCount = 100;
         const explodeArr: Point[] = [];
         
         for(let i=0;i<explodeObjectCount;i++){
