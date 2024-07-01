@@ -74,7 +74,7 @@ export var HoldMod;
         guy.hold.entity.position[2] = ogPos[2] + .15 * Math.random() - .075;
         J3.copy(guy.holdHand.position, guy.hold.entity.position);
         guy.holdHand.position[1] -= 2.2;
-        console.log(ogPos);
+        // console.log(ogPos);
         // console.log("shaking");
     }
     HoldMod.shake = shake;

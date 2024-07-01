@@ -21,7 +21,7 @@ import { createObj } from "../ecs/em-objects.js";
 import { createSun, initGhost } from "../graybox/graybox-helpers.js";
 import { Phase } from "../ecs/sys-phase.js";
 import { InputsDef } from "../input/inputs.js";
-import { buildFreqDataArray, configureAnalyser, createAudioGraph } from "./audio-code.js";
+import { buildFreqDataArray, configureAnalyser, createAudioGraph, mkSoundEffectsArray, mkActionAudioData, endAndResetActionAudio, updateActionAudio, resetActionAudio } from "./audio-code.js";
 import { skyPipeline } from "../render/pipelines/std-sky.js";
 import { TreeBuilder } from "./palm-tree.js";
 import { HoldMod } from "./hold-modify.js";
@@ -97,6 +97,11 @@ export var J3;
     }
     J3.len = len;
 })(J3 || (J3 = {}));
+export function getRandomInt(min, max) {
+    const minCeiled = Math.ceil(min);
+    const maxFloored = Math.floor(max);
+    return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); // The maximum is exclusive and the minimum is inclusive
+}
 export async function initJoelGame() {
     stdGridRender.fragOverrides.lineSpacing1 = 8.0;
     stdGridRender.fragOverrides.lineWidth1 = 0.05;
@@ -385,6 +390,12 @@ export async function initJoelGame() {
     let explodeArr = [];
     let explodeArrDead = false;
     let deadHolds = [];
+    let goodSoundEffects = [];
+    // let explodeSoundEffects: HTMLAudioElement[] = [];
+    let stretchSoundEffects = [];
+    let releaseSoundEffects = [];
+    let stretchAudio;
+    let explodeAudio;
     const guy = {
         jumpHand: rh,
         holdHand: lh,
@@ -431,11 +442,11 @@ export async function initJoelGame() {
         updateAmpMax(ampArr, newAmp);
         return solution;
     }
-    function getRandomInt(min, max) {
-        const minCeiled = Math.ceil(min);
-        const maxFloored = Math.floor(max);
-        return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); // The maximum is exclusive and the minimum is inclusive
-    }
+    // function getRandomInt(min:number, max:number):number {
+    //   const minCeiled = Math.ceil(min);
+    //   const maxFloored = Math.floor(max);
+    //   return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); // The maximum is exclusive and the minimum is inclusive
+    // }
     function randomOrderArray(length) {
         let set = new Set();
         let arr = [];
@@ -471,12 +482,30 @@ export async function initJoelGame() {
             startGame();
         }
         if (!audioElement && inputs.anyClick) {
+            // goodSoundEffects = mkSoundEffectsArray(["./audio-files/pasat.mp3"]);
             audioElement = new Audio("./audio-files/techno2.mp3");
-            audioGraph = createAudioGraph(audioElement, false, true);
+            audioElement.loop = true;
+            // audioElement.controls = true;
+            audioGraph = createAudioGraph(audioElement, true, true);
             assert(audioGraph.analyser);
             configureAnalyser(audioGraph.analyser, 32, -90, 0, 0);
             freqDataArr = buildFreqDataArray(audioGraph.analyser);
             audioElement.play();
+            goodSoundEffects = mkSoundEffectsArray(["./audio-files/sit.mp3"], audioGraph);
+            explodeAudio = mkActionAudioData([
+                "./audio-files/explode/choss001.mp3",
+                "./audio-files/explode/choss002.mp3",
+            ], ["./audio-files/explode/rock-break.mp3"], 0, audioGraph);
+            stretchAudio = mkActionAudioData([
+                "./audio-files/stretch/str1.mp3",
+                "./audio-files/stretch/str2.mp3",
+                "./audio-files/stretch/str3.mp3",
+                "./audio-files/stretch/str4.mp3",
+                "./audio-files/stretch/str5.mp3",
+                "./audio-files/stretch/str6.mp3",
+                "./audio-files/stretch/str7.mp3",
+                "./audio-files/stretch/str8.mp3",
+            ], ["./audio-files/stretch/release1.mp3",], 3, audioGraph);
         }
         //to do: loop track 
         // if(audioElement && audioElement.)
@@ -504,9 +533,14 @@ export async function initJoelGame() {
         }
         if (guy.hold.explode) {
             guy.jump.ok = false;
+            if (explodeCountdown === world.explodeCountdown) {
+                // explodeSoundEffects[1].play();
+                explodeAudio.elements[0].play();
+            }
             if (explodeCountdown > 0) {
                 explodeCountdown--;
                 HoldMod.shake(guy, holdShakePos);
+                updateActionAudio(explodeAudio);
             }
             else if (explodeCountdown === 0) {
                 if (explodeArr.length === 0) {
@@ -516,6 +550,9 @@ export async function initJoelGame() {
                     HoldMod.reviveExplodeArr(explodeArr, guy, explodeArrDead);
                     explodeArrDead = false;
                 }
+                // if(!explodeSoundEffects[1].ended) explodeSoundEffects[1].pause();
+                // explodeSoundEffects[0].play();
+                endAndResetActionAudio(explodeAudio);
                 const dh = guy.hold.entity;
                 EM.set(dh, DeadDef);
                 dh.dead.processed = true;
@@ -528,8 +565,13 @@ export async function initJoelGame() {
             }
         }
         if (guy.hold.choss) {
+            if (chossCountdown === world.chossCountdown) {
+                // explodeSoundEffects[1].play();
+                explodeAudio.elements[0].play();
+            }
             if (chossCountdown > 0) {
                 chossCountdown--;
+                updateActionAudio(explodeAudio);
                 HoldMod.shake(guy, holdShakePos);
             }
             else if (chossCountdown === 0) {
@@ -540,6 +582,9 @@ export async function initJoelGame() {
                     HoldMod.reviveExplodeArr(explodeArr, guy, explodeArrDead);
                     explodeArrDead = false;
                 }
+                // if(!explodeSoundEffects[1].ended) explodeSoundEffects[1].pause();
+                // explodeSoundEffects[0].play();
+                endAndResetActionAudio(explodeAudio);
                 const dh = guy.hold.entity;
                 EM.set(dh, DeadDef);
                 dh.dead.processed = true;
@@ -555,11 +600,33 @@ export async function initJoelGame() {
             chossCountdown = world.chossCountdown;
         if (guy.jump.ok && !guy.jump.jump && !mouseIsPressed && inputs.ldown) {
             mouseIsPressed = true;
+            // if(goodSoundEffects.length===0){
+            //   goodSoundEffects = mkSoundEffectsArray(["./audio-files/sit.mp3"], audioGraph);
+            //   explodeAudio = mkActionAudioData([
+            //     "./audio-files/explode/choss01.mp3",
+            //     "./audio-files/explode/choss02.mp3",
+            //     "./audio-files/explode/choss03.mp3",
+            //     "./audio-files/explode/choss04.mp3",],
+            //   ["./audio-files/explode/rock-break.mp3"],0,audioGraph);
+            //   stretchAudio = mkActionAudioData([
+            //     "./audio-files/stretch/str1.mp3",
+            //     "./audio-files/stretch/str2.mp3",
+            //     "./audio-files/stretch/str3.mp3",
+            //     "./audio-files/stretch/str4.mp3",
+            //     "./audio-files/stretch/str5.mp3",
+            //     "./audio-files/stretch/str6.mp3",
+            //     "./audio-files/stretch/str7.mp3",
+            //     "./audio-files/stretch/str8.mp3",],
+            //   ["./audio-files/stretch/release1.mp3",],3,audioGraph);
+            // }
             InitJump();
+            stretchAudio.elements[0].play();
+            // stretchSoundEffects[0].play();
         }
         else if (!guy.jump.jump && mouseIsPressed) {
             if (inputs.ldown) {
                 DragJump();
+                updateActionAudio(stretchAudio);
                 const a = mouseStart[0] - mousePosition[0];
                 const b = mouseStart[1] - mousePosition[1];
                 const power = Math.sqrt(a * a + b * b);
@@ -567,6 +634,7 @@ export async function initJoelGame() {
             }
             else {
                 ReleaseJump();
+                endAndResetActionAudio(stretchAudio);
                 mouseIsPressed = false;
                 PowerMeter.updatePower(0, powerMeter);
             }
@@ -580,7 +648,9 @@ export async function initJoelGame() {
                     fixedMoveUpdate(point);
                     guy.jump.escapeCount--;
                     if (guy.jump.escapeCount < 0) {
-                        checkForHoldColision();
+                        if (checkForHoldColision() && goodSoundEffects.length > 0) {
+                            goodSoundEffects[getRandomInt(0, goodSoundEffects.length)].play();
+                        }
                     }
                 }
                 continue;
@@ -626,6 +696,11 @@ export async function initJoelGame() {
             guy.jump.jump = true;
             guy.jumpHand.fixed = true;
             guy.holdHand.fixed = false;
+            if (guy.hold.choss) {
+                resetActionAudio(explodeAudio);
+                // explodeSoundEffects[1].pause();
+            }
+            guy.hold = holds[0];
         }
         function checkForHoldColision() {
             for (const hold of holds) {
