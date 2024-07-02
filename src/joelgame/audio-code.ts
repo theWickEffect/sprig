@@ -119,6 +119,7 @@ export function buildFreqDataArray(analyser: AnalyserNode): Uint8Array{
     return new Uint8Array(analyser.frequencyBinCount);
 }
 
+/** DOES THE THING */ 
 export function getFrequencyData(analyser: AnalyserNode, dataArr: Uint8Array): Uint8Array{
     analyser.getByteTimeDomainData(dataArr);
     return dataArr;

@@ -1,0 +1,1 @@
+{"version":3,"file":"climbing-main.js","sourceRoot":"","sources":["../../src/joelgame/climbing-main.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,aAAa,EAAE,MAAM,YAAY,CAAC;AAG3C,CAAC,KAAK,IAAI,EAAE;IACV,kEAAkE;IAClE,IAAI,CAAC;QACH,MAAM,aAAa,EAAE,CAAC;IACxB,CAAC;IAAC,OAAO,CAAC,EAAE,CAAC;QACX,OAAO,CAAC,KAAK,CAAC,CAAC,CAAC,CAAC;IACnB,CAAC;AACH,CAAC,CAAC,EAAE,CAAC"}

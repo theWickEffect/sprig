@@ -87,7 +87,7 @@ export function startDefaultGame() {
         GAME_LOADER.startGame(DEFAULT_GAME);
     });
 }
-async function startGameLoop() {
+export async function startGameLoop() {
     // dbgLogMilestone("main()");
     resetTempMatrixBuffer(`startGameLoop`);
     startNet();
@@ -142,15 +142,15 @@ async function main() {
 window.onload = () => {
     setupObjImportExporter();
 };
-(async () => {
-    // TODO(@darzu): work around for lack of top-level await in Safari
-    try {
-        await main();
-    }
-    catch (e) {
-        console.error(e);
-    }
-})();
+//todo scrape this function??
+// (async () => {
+//   // TODO(@darzu): work around for lack of top-level await in Safari
+//   try {
+//     await main();
+//   } catch (e) {
+//     console.error(e);
+//   }
+// })();
 // for debugging
 globalThis.dbg = dbg;
 globalThis.EM = EM;

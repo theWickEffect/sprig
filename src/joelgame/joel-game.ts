@@ -140,10 +140,30 @@ export interface JumpData{
   escapeAmt: number;
   escapeCount: number;
   jump: boolean;
-}
+} 
+
 export type Point = {position: V3, prevPosition: V3, fixed: boolean, object: EntityW<[typeof PositionDef]>};
 
 export type Stick = {pointA: Point, pointB: Point, length: number};
+
+export interface WorldParams {
+  wallHeight: number;
+  wallWidth: number;
+  CLUSTER_VERT_OFFSET: number;
+  CLUSTER_VERT_VAR: number;
+  CLUSTER_SIZE: number;
+  hasTrees: boolean;
+  wallColor: V3;
+  oceanColor: V3;
+  explodeChance: number;
+  chossChance: number;
+  explodeCountdown: number;
+  chossCountdown: number;
+}
+
+export interface GameControl{
+  live: boolean;
+}
 
 export async function initJoelGame() {
   stdGridRender.fragOverrides!.lineSpacing1 = 8.0;
@@ -185,7 +205,9 @@ export async function initJoelGame() {
   const gridDef = [RenderableConstructDef, PositionDef, ScaleDef, ColorDef] as const;
 
 
-  
+  const game: GameControl = {
+    live: false,
+  };
 
   const grid = createObj(
     gridDef,
@@ -207,22 +229,22 @@ export async function initJoelGame() {
   EM.set(sky, RenderableConstructDef, skyMesh, undefined, undefined, SKY_MASK);
 
   
-  interface worldParams {
-    wallHeight: number;
-    wallWidth: number;
-    CLUSTER_VERT_OFFSET: number;
-    CLUSTER_VERT_VAR: number;
-    CLUSTER_SIZE: number;
-    hasTrees: boolean;
-    wallColor: V3;
-    oceanColor: V3;
-    explodeChance: number;
-    chossChance: number;
-    explodeCountdown: number;
-    chossCountdown: number;
-  }
+  // interface worldParams {
+  //   wallHeight: number;
+  //   wallWidth: number;
+  //   CLUSTER_VERT_OFFSET: number;
+  //   CLUSTER_VERT_VAR: number;
+  //   CLUSTER_SIZE: number;
+  //   hasTrees: boolean;
+  //   wallColor: V3;
+  //   oceanColor: V3;
+  //   explodeChance: number;
+  //   chossChance: number;
+  //   explodeCountdown: number;
+  //   chossCountdown: number;
+  // }
 
-  const world: worldParams = {
+  const world: WorldParams = {
     wallHeight: 45,
     wallWidth:20,
     CLUSTER_VERT_OFFSET: 3,

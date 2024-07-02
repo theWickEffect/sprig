@@ -74,6 +74,7 @@ export function configureAnalyser(analyser, fftSize = 2048, minDecibles = -100, 
 export function buildFreqDataArray(analyser) {
     return new Uint8Array(analyser.frequencyBinCount);
 }
+/** DOES THE THING */
 export function getFrequencyData(analyser, dataArr) {
     analyser.getByteTimeDomainData(dataArr);
     return dataArr;
