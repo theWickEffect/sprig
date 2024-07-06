@@ -40,6 +40,7 @@ function initViewText(){
     
 export function buildStartScreen(): HTMLDivElement{
     const homepageDiv = document.createElement("div");
+    homepageDiv.setAttribute("id", "start-screen-div");
     homepageDiv.appendChild(view.title);
     // to do add a css animation;
     homepageDiv.appendChild(view.playButton);
@@ -57,5 +58,17 @@ export function buildLevelScreen(levelNum: number): HTMLDivElement{
     return levelDiv;
 }
 
+export function DisplayStartScreen(): HTMLButtonElement{
+    const startScreen = buildStartScreen();
+    const topElement = document.getElementById("top-div");
+    topElement?.insertAdjacentElement("afterend",startScreen);
+    return view.playButton;
+}
 
+export function removeStartScreen(){
+    const startScreen = document.getElementById("start-screen-div");
+    if(startScreen){
+        document.removeChild(startScreen);
+    }
+}
 

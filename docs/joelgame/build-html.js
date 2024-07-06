@@ -27,6 +27,7 @@ function initViewText() {
 }
 export function buildStartScreen() {
     const homepageDiv = document.createElement("div");
+    homepageDiv.setAttribute("id", "start-screen-div");
     homepageDiv.appendChild(view.title);
     // to do add a css animation;
     homepageDiv.appendChild(view.playButton);
@@ -41,5 +42,17 @@ export function buildLevelScreen(levelNum) {
     levelDiv.appendChild(view.playButton);
     //to do: add a graphic?
     return levelDiv;
+}
+export function DisplayStartScreen() {
+    const startScreen = buildStartScreen();
+    const topElement = document.getElementById("top-div");
+    topElement?.insertAdjacentElement("afterend", startScreen);
+    return view.playButton;
+}
+export function removeStartScreen() {
+    const startScreen = document.getElementById("start-screen-div");
+    if (startScreen) {
+        document.removeChild(startScreen);
+    }
 }
 //# sourceMappingURL=build-html.js.map
