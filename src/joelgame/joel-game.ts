@@ -657,6 +657,9 @@ export async function initJoelGame() {
     //Reset:
     //to do: add game over check
     if(inputs.keyClicks['m']){
+      guy.jump.ok = true;
+      guy.jumpHand.fixed = true;
+      guy.holdHand.fixed = false;
       startGame();
       if(explodeArr.length>0){
         HoldMod.killExplodeArr(explodeArr);
@@ -666,9 +669,10 @@ export async function initJoelGame() {
       explodeCountdown = world.explodeCountdown;
       chossCountdown = world.chossCountdown;
       
+      
       while(deadHolds.length > 0){
         const dh = deadHolds.pop();
-        if(dh) EM.removeComponent(dh.id,DeadDef);
+        if(dh?.dead) EM.removeComponent(dh.id,DeadDef);
       }
     }
 
@@ -731,6 +735,7 @@ export async function initJoelGame() {
         dh.dead.processed = true;
         deadHolds.push(dh);
         chossCountdown--;
+        guy.jump.ok = false;
         guy.holdHand.fixed = false;
       }
       else{
@@ -764,7 +769,7 @@ export async function initJoelGame() {
       stretchAudio.elements[0].play();
       // stretchSoundEffects[0].play();
     }
-    else if(!guy.jump.jump && mouseIsPressed){
+    else if(!guy.jump.jump && mouseIsPressed && guy.jump.ok){
       if(inputs.ldown){
         DragJump();
         updateActionAudio(stretchAudio);
@@ -780,6 +785,11 @@ export async function initJoelGame() {
         PowerMeter.updatePower(0,powerMeter);
       }
     }
+    else if(mouseIsPressed && !guy.jump.ok){
+      endAndResetActionAudio(stretchAudio);
+      mouseIsPressed = false;
+      PowerMeter.updatePower(0,powerMeter);
+    }
 
     
     //update points and add gravity:
@@ -791,7 +801,7 @@ export async function initJoelGame() {
         if(guy.jump.jump){
           fixedMoveUpdate(point);
           guy.jump.escapeCount--;
-          if(guy.jump.escapeCount<0){
+          if(guy.jump.escapeCount<0 ){
             if(checkForHoldColision() && goodSoundEffects.length>0){
               goodSoundEffects[getRandomInt(0,goodSoundEffects.length)].play();
             }
