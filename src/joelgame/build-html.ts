@@ -7,7 +7,7 @@ interface View{
     lossHeading: HTMLHeadingElement;
     winHeading: HTMLHeadingElement;
     levelText: HTMLParagraphElement[];
-    
+    levelTitle: HTMLHeadingElement[];
 }
 const view: View = {
     title: document.createElement("h1"),
@@ -17,6 +17,7 @@ const view: View = {
     lossHeading: document.createElement("h3"),
     winHeading: document.createElement("h3"),
     levelText: [],
+    levelTitle: [],
 }
 initViewText();
 function initViewText(){
@@ -26,8 +27,15 @@ function initViewText(){
     view.lossHeading.textContent = "You Loose";
     view.winHeading.textContent = "You Win!";
     view.smallTitle.textContent = view.title.textContent;
+    view.levelTitle.push(document.createElement('h4'));
+    view.levelTitle[0].textContent = "Tutorial Title";
+    view.levelTitle.push(document.createElement('h4'));
+    view.levelTitle[0].textContent = "Level 1 Title";
     view.levelText.push(document.createElement('p'));
-    view.levelText[0].textContent = "level 1 text";
+    view.levelText[0].textContent = "tutorial text";
+    view.levelText.push(document.createElement('p'));
+    view.levelText[1].textContent = "level 1 text";
+
 }
     
 export function buildStartScreen(): HTMLDivElement{
@@ -39,16 +47,15 @@ export function buildStartScreen(): HTMLDivElement{
     return homepageDiv;
 }
 
-export function buildLevel1Screen(): HTMLDivElement{
-    const level1Div = document.createElement("div");
-
-    return level1Div;
+export function buildLevelScreen(levelNum: number): HTMLDivElement{
+    const levelDiv = document.createElement("div");
+    levelDiv.appendChild(view.smallTitle);
+    levelDiv.appendChild(view.levelTitle[levelNum]);
+    levelDiv.appendChild(view.levelText[levelNum]);
+    levelDiv.appendChild(view.playButton);
+    //to do: add a graphic?
+    return levelDiv;
 }
 
-export function buildLevel2Screen(): HTMLDivElement{
-    const level2Div = document.createElement("div");
 
-    return level2Div;
-}
-// etc
 
