@@ -40,6 +40,8 @@ import { TreeBuilder } from "./palm-tree.js";
 import { HoldMod } from "./hold-modify.js";
 import { DeadDef } from "../ecs/delete.js";
 import { PowerMeter } from "./power-meter.js";
+import { buildStartScreen, displayStartScreen, removeStartScreen } from "./build-html.js";
+import { updateHearts } from "./in-game-dynamic-html.js";
 
 const DBG_GHOST = false;
 const DEBUG = false;
@@ -161,8 +163,9 @@ export interface WorldParams {
   chossCountdown: number;
 }
 
-export interface GameControl{
+export interface GameState{
   live: boolean;
+  level: number;
 }
 
 export async function initJoelGame() {
@@ -205,8 +208,9 @@ export async function initJoelGame() {
   const gridDef = [RenderableConstructDef, PositionDef, ScaleDef, ColorDef] as const;
 
 
-  const game: GameControl = {
+  const game: GameState = {
     live: false,
+    level: 0,
   };
 
   const grid = createObj(
@@ -594,12 +598,25 @@ export async function initJoelGame() {
   EM.set(cam, CameraFollowDef, 1);
   EM.set(cam, RenderableConstructDef, CubeMesh, true);
 
+
+  initStartscreen()
+  function initStartscreen(){
+    const startButton = displayStartScreen();
+    guy.jump.ok = false;
+    startButton.onclick = () =>{
+      removeStartScreen();
+      game.live = true;
+      guy.jump.ok = true;
+    };
+  }
+
   function startGame(){
     guy.jumpHand.fixed = false;
     guy.holdHand.fixed = true;
     guy.jump.jump = false;
     guy.jump.ok = true;
     guy.hold = holds[0]
+    updateHearts();
     J3.copy(guy.holdHand.position, guy.hold.catchPoint);
     J3.copy(guy.holdHand.prevPosition, guy.holdHand.position);
     guy.jump.escapeCount = guy.jump.escapeAmt;
@@ -614,7 +631,8 @@ export async function initJoelGame() {
       
     } 
 
-    if(!audioElement && inputs.anyClick){
+    //was set to inputs.anyClick
+    if(!audioElement && inputs.lclick){
       // goodSoundEffects = mkSoundEffectsArray(["./audio-files/pasat.mp3"]);
       audioElement = new Audio("./audio-files/techno2.mp3");
       audioElement.loop = true;
@@ -744,51 +762,53 @@ export async function initJoelGame() {
     }
     else chossCountdown = world.chossCountdown;
 
-    if(guy.jump.ok && !guy.jump.jump && !mouseIsPressed && inputs.ldown){
-      mouseIsPressed = true;
-      // if(goodSoundEffects.length===0){
-      //   goodSoundEffects = mkSoundEffectsArray(["./audio-files/sit.mp3"], audioGraph);
-      //   explodeAudio = mkActionAudioData([
-      //     "./audio-files/explode/choss01.mp3",
-      //     "./audio-files/explode/choss02.mp3",
-      //     "./audio-files/explode/choss03.mp3",
-      //     "./audio-files/explode/choss04.mp3",],
-      //   ["./audio-files/explode/rock-break.mp3"],0,audioGraph);
-      //   stretchAudio = mkActionAudioData([
-      //     "./audio-files/stretch/str1.mp3",
-      //     "./audio-files/stretch/str2.mp3",
-      //     "./audio-files/stretch/str3.mp3",
-      //     "./audio-files/stretch/str4.mp3",
-      //     "./audio-files/stretch/str5.mp3",
-      //     "./audio-files/stretch/str6.mp3",
-      //     "./audio-files/stretch/str7.mp3",
-      //     "./audio-files/stretch/str8.mp3",],
-      //   ["./audio-files/stretch/release1.mp3",],3,audioGraph);
-      // }
-      InitJump();
-      stretchAudio.elements[0].play();
-      // stretchSoundEffects[0].play();
-    }
-    else if(!guy.jump.jump && mouseIsPressed && guy.jump.ok){
-      if(inputs.ldown){
-        DragJump();
-        updateActionAudio(stretchAudio);
-        const a = mouseStart[0]-mousePosition[0];
-        const b = mouseStart[1]-mousePosition[1];
-        const power = Math.sqrt(a*a + b*b);
-        PowerMeter.updatePower(power,powerMeter)
+    if(game.live){
+      if(guy.jump.ok && !guy.jump.jump && !mouseIsPressed && inputs.ldown){
+        mouseIsPressed = true;
+        // if(goodSoundEffects.length===0){
+        //   goodSoundEffects = mkSoundEffectsArray(["./audio-files/sit.mp3"], audioGraph);
+        //   explodeAudio = mkActionAudioData([
+        //     "./audio-files/explode/choss01.mp3",
+        //     "./audio-files/explode/choss02.mp3",
+        //     "./audio-files/explode/choss03.mp3",
+        //     "./audio-files/explode/choss04.mp3",],
+        //   ["./audio-files/explode/rock-break.mp3"],0,audioGraph);
+        //   stretchAudio = mkActionAudioData([
+        //     "./audio-files/stretch/str1.mp3",
+        //     "./audio-files/stretch/str2.mp3",
+        //     "./audio-files/stretch/str3.mp3",
+        //     "./audio-files/stretch/str4.mp3",
+        //     "./audio-files/stretch/str5.mp3",
+        //     "./audio-files/stretch/str6.mp3",
+        //     "./audio-files/stretch/str7.mp3",
+        //     "./audio-files/stretch/str8.mp3",],
+        //   ["./audio-files/stretch/release1.mp3",],3,audioGraph);
+        // }
+        InitJump();
+        stretchAudio.elements[0].play();
+        // stretchSoundEffects[0].play();
       }
-      else {
-        ReleaseJump();
+      else if(!guy.jump.jump && mouseIsPressed && guy.jump.ok){
+        if(inputs.ldown){
+          DragJump();
+          updateActionAudio(stretchAudio);
+          const a = mouseStart[0]-mousePosition[0];
+          const b = mouseStart[1]-mousePosition[1];
+          const power = Math.sqrt(a*a + b*b);
+          PowerMeter.updatePower(power,powerMeter)
+        }
+        else {
+          ReleaseJump();
+          endAndResetActionAudio(stretchAudio);
+          mouseIsPressed = false;
+          PowerMeter.updatePower(0,powerMeter);
+        }
+      }
+      else if(mouseIsPressed && !guy.jump.ok){
         endAndResetActionAudio(stretchAudio);
         mouseIsPressed = false;
         PowerMeter.updatePower(0,powerMeter);
       }
-    }
-    else if(mouseIsPressed && !guy.jump.ok){
-      endAndResetActionAudio(stretchAudio);
-      mouseIsPressed = false;
-      PowerMeter.updatePower(0,powerMeter);
     }
 
     

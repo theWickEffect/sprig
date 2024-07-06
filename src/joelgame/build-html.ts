@@ -1,29 +1,41 @@
+import { assert } from "../utils/util.js";
 
 interface View{
+    topDiv: HTMLElement | null;
     title: HTMLHeadingElement;
     smallTitle: HTMLHeadingElement;
     instructions: HTMLParagraphElement;
     playButton: HTMLButtonElement;
+    continueButton: HTMLButtonElement;
+    goButton: HTMLButtonElement;
     lossHeading: HTMLHeadingElement;
     winHeading: HTMLHeadingElement;
     levelText: HTMLParagraphElement[];
     levelTitle: HTMLHeadingElement[];
 }
 const view: View = {
+    topDiv: document.getElementById("top-div"),
     title: document.createElement("h1"),
     smallTitle: document.createElement("h2"),
     instructions: document.createElement("p"),
     playButton: document.createElement("button"),
+    continueButton: document.createElement("button"),
+    goButton: document.createElement("button"),
     lossHeading: document.createElement("h3"),
     winHeading: document.createElement("h3"),
     levelText: [],
     levelTitle: [],
 }
+let playFunction: Function = () =>{};
+view.playButton.onclick = ()=>{playFunction()};
+assert(view.topDiv);
 initViewText();
 function initViewText(){
     view.title.textContent = "Wall Rider 9000";
     view.instructions.textContent = "Controlls: Click, Drag, Release";
     view.playButton.textContent = "Play";
+    view.continueButton.textContent = "Continue";
+    view.goButton.textContent = "Lets Go!";
     view.lossHeading.textContent = "You Loose";
     view.winHeading.textContent = "You Win!";
     view.smallTitle.textContent = view.title.textContent;
@@ -58,17 +70,27 @@ export function buildLevelScreen(levelNum: number): HTMLDivElement{
     return levelDiv;
 }
 
-export function DisplayStartScreen(): HTMLButtonElement{
+export function displayStartScreen(): HTMLButtonElement{
+    console.log("displayStartScreen");
     const startScreen = buildStartScreen();
-    const topElement = document.getElementById("top-div");
-    topElement?.insertAdjacentElement("afterend",startScreen);
+    view.topDiv?.appendChild(startScreen)
+    // const topElement = document.getElementById("top-div");
+    // if(topElement){
+    //     console.log("topElementFound");
+    //     topElement.appendChild(startScreen);
+    // }
+    
     return view.playButton;
 }
 
 export function removeStartScreen(){
     const startScreen = document.getElementById("start-screen-div");
+    // view.topDiv?.removeChild(startScreen);
     if(startScreen){
-        document.removeChild(startScreen);
+        view.topDiv?.removeChild(startScreen);
     }
 }
 
+export function updatePlayFunction(playFunc: Function){
+    playFunction = playFunc;
+}
