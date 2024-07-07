@@ -45,12 +45,31 @@ export function buildStartScreen() {
 }
 export function buildLevelScreen(levelNum) {
     const levelDiv = document.createElement("div");
+    levelDiv.setAttribute("id", "level-div");
     levelDiv.appendChild(view.smallTitle);
     levelDiv.appendChild(view.levelTitle[levelNum]);
     levelDiv.appendChild(view.levelText[levelNum]);
-    levelDiv.appendChild(view.playButton);
+    levelDiv.appendChild(view.goButton);
     //to do: add a graphic?
     return levelDiv;
+}
+export function buildWinScreen() {
+    const winDiv = document.createElement("div");
+    winDiv.setAttribute("id", "win-div");
+    winDiv.appendChild(view.smallTitle);
+    winDiv.appendChild(view.winHeading);
+    winDiv.appendChild(view.continueButton);
+    //to do: add a graphic?
+    return winDiv;
+}
+export function buildLossScreen() {
+    const lossDiv = document.createElement("div");
+    lossDiv.setAttribute("id", "loss-div");
+    lossDiv.appendChild(view.smallTitle);
+    lossDiv.appendChild(view.lossHeading);
+    lossDiv.appendChild(view.continueButton);
+    //to do: add a graphic?
+    return lossDiv;
 }
 export function displayStartScreen() {
     console.log("displayStartScreen");
@@ -62,6 +81,11 @@ export function displayStartScreen() {
     //     topElement.appendChild(startScreen);
     // }
     return view.playButton;
+}
+export function displayScreen(screen) {
+    console.log("display: " + screen.getAttribute("id"));
+    view.topDiv?.appendChild(screen);
+    return screen.querySelector("button");
 }
 export function removeStartScreen() {
     const startScreen = document.getElementById("start-screen-div");
