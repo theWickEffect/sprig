@@ -139,6 +139,7 @@ export async function initJoelGame() {
     const game = {
         live: false,
         level: 0,
+        frameCount: 0,
     };
     const grid = createObj(gridDef, {
         renderableConstruct: [PlaneMesh, true, undefined, GRID_MASK],

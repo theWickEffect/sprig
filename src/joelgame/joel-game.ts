@@ -166,6 +166,7 @@ export interface WorldParams {
 export interface GameState{
   live: boolean;
   level: number;
+  frameCount: number;
 }
 
 export async function initJoelGame() {
@@ -211,6 +212,7 @@ export async function initJoelGame() {
   const game: GameState = {
     live: false,
     level: 0,
+    frameCount: 0,
   };
 
   const grid = createObj(
