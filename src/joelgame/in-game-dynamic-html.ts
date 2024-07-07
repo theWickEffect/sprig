@@ -11,9 +11,22 @@ export function updateHearts(){
     console.log("updateHearts")
     let heartString = "";
     for(let i=0;i<lives;i++){
-        heartString += " 💚";
+        heartString += " ❤️";
     }
     hearts.textContent = heartString;
+}
+
+export function breakHeart(){
+    lives--;
+    if(hearts.textContent){
+        hearts.textContent = hearts.textContent.substring(0, hearts.textContent.length - 1) + "💔";
+    }
+}
+
+export function killHeart(){
+    if(hearts.textContent){
+        hearts.textContent = hearts.textContent.substring(0, hearts.textContent.length-2);
+    }
 }
 
 function displayHearts(){
