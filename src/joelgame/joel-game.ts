@@ -626,6 +626,8 @@ export async function initJoelGame() {
   //update points and sticks each frame:
   EM.addSystem("stickAndPoint",Phase.GAME_WORLD,[],[InputsDef],(_, {inputs})=>{
     
+    game.frameCount++;
+
     //init game
     if(!gameStarted){
       gameStarted = true;
