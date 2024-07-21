@@ -40,8 +40,8 @@ import { TreeBuilder } from "./palm-tree.js";
 import { HoldMod } from "./hold-modify.js";
 import { DeadDef } from "../ecs/delete.js";
 import { PowerMeter } from "./power-meter.js";
-import { buildStartScreen, displayStartScreen, removeStartScreen } from "./build-html.js";
-import { updateHearts } from "./in-game-dynamic-html.js";
+import { buildLossScreen, buildStartScreen, displayScreen, displayStartScreen, removeStartScreen } from "./build-html.js";
+import { breakHeart, killHeart, updateHearts } from "./in-game-dynamic-html.js";
 
 const DBG_GHOST = false;
 const DEBUG = false;
@@ -169,6 +169,14 @@ export interface GameState{
   frameCount: number;
 }
 
+export interface LifeControll{
+  dead: boolean;
+  hearts: number;
+  heartsReset: number;
+  heartbreakCount: number;
+  heartbreakCountReset: number;
+}
+
 export async function initJoelGame() {
   stdGridRender.fragOverrides!.lineSpacing1 = 8.0;
   stdGridRender.fragOverrides!.lineWidth1 = 0.05;
@@ -214,6 +222,20 @@ export async function initJoelGame() {
     level: 0,
     frameCount: 0,
   };
+
+  const lifeControll: LifeControll = {
+    dead: false,
+    hearts: 3,
+    heartsReset: 3,
+    heartbreakCount: 60,
+    heartbreakCountReset: 60,
+  }
+
+  function resetLifeControll(){
+    lifeControll.dead = false;
+    lifeControll.hearts = lifeControll.heartsReset;
+    lifeControll.heartbreakCount = lifeControll.heartbreakCountReset;
+  }
 
   const grid = createObj(
     gridDef,
@@ -618,7 +640,7 @@ export async function initJoelGame() {
     guy.jump.jump = false;
     guy.jump.ok = true;
     guy.hold = holds[0]
-    updateHearts();
+    updateHearts(lifeControll);
     J3.copy(guy.holdHand.position, guy.hold.catchPoint);
     J3.copy(guy.holdHand.prevPosition, guy.holdHand.position);
     guy.jump.escapeCount = guy.jump.escapeAmt;
@@ -634,6 +656,27 @@ export async function initJoelGame() {
       startGame();
       
     } 
+    if(!lifeControll.dead && guy.holdHand.position[2]<0){
+      lifeControll.dead = true;
+      breakHeart(lifeControll);
+    } 
+    if(lifeControll.dead){
+      lifeControll.heartbreakCount--;
+      if(lifeControll.heartbreakCount === 0){
+        killHeart();
+        lifeControll.heartbreakCount = lifeControll.heartbreakCountReset;
+        lifeControll.dead = false;
+        resetLevel();
+        if(lifeControll.hearts === 0){
+          const resetButton = displayScreen(buildLossScreen());
+          assert(resetButton);
+          resetButton.onclick = () =>{
+            startGame();
+            resetLifeControll();
+          }
+        }
+      }
+    }
 
     //was set to inputs.anyClick
     if(!audioElement && inputs.lclick){
@@ -678,6 +721,26 @@ export async function initJoelGame() {
 
     //Reset:
     //to do: add game over check
+    function resetLevel(){
+      guy.jump.ok = true;
+      guy.jumpHand.fixed = true;
+      guy.holdHand.fixed = false;
+      startGame();
+      if(explodeArr.length>0){
+        HoldMod.killExplodeArr(explodeArr);
+        explodeArrDead = true;
+      }
+
+      explodeCountdown = world.explodeCountdown;
+      chossCountdown = world.chossCountdown;
+      
+      
+      while(deadHolds.length > 0){
+        const dh = deadHolds.pop();
+        if(dh?.dead) EM.removeComponent(dh.id,DeadDef);
+      }
+    }
+    //redundant
     if(inputs.keyClicks['m']){
       guy.jump.ok = true;
       guy.jumpHand.fixed = true;

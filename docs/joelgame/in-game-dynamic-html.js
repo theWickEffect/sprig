@@ -1,20 +1,21 @@
 const hearts = document.createElement("h6");
 hearts.setAttribute("id", "hearts");
-export let lives = 3;
-updateHearts();
+// export let lives = 3;
+//to do import lifeControll interface for lives;
+// updateHearts();
 displayHearts();
-export function updateHearts() {
+export function updateHearts(lc) {
     console.log("updateHearts");
     let heartString = "";
-    for (let i = 0; i < lives; i++) {
+    for (let i = 0; i < lc.hearts; i++) {
         heartString += " ❤️";
     }
     hearts.textContent = heartString;
 }
-export function breakHeart() {
-    lives--;
+export function breakHeart(lc) {
+    lc.hearts--;
     if (hearts.textContent) {
-        hearts.textContent = hearts.textContent.substring(0, hearts.textContent.length - 1) + "💔";
+        hearts.textContent = hearts.textContent.substring(0, hearts.textContent.length - 2) + " 💔";
     }
 }
 export function killHeart() {

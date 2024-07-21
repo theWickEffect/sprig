@@ -82,7 +82,7 @@ export function buildWinScreen(){
     return winDiv;
 }
 
-export function buildLossScreen(){
+export function buildLossScreen(): HTMLDivElement{
     const lossDiv = document.createElement("div");
     lossDiv.setAttribute("id", "loss-div")
     lossDiv.appendChild(view.smallTitle);
