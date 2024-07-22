@@ -27,7 +27,7 @@ import { TreeBuilder } from "./palm-tree.js";
 import { HoldMod } from "./hold-modify.js";
 import { DeadDef } from "../ecs/delete.js";
 import { PowerMeter } from "./power-meter.js";
-import { buildLossScreen, displayScreen, displayStartScreen, removeScreen, removeStartScreen } from "./build-html.js";
+import { displayScreen, displayStartScreen, pages, removeStartScreen } from "./build-html.js";
 import { breakHeart, killHeart, updateHearts } from "./in-game-dynamic-html.js";
 const DBG_GHOST = false;
 const DEBUG = false;
@@ -181,97 +181,159 @@ export async function initJoelGame() {
     //   explodeCountdown: number;
     //   chossCountdown: number;
     // }
-    const world = {
-        wallHeight: 45,
-        wallWidth: 20,
-        CLUSTER_VERT_OFFSET: 3,
-        CLUSTER_VERT_VAR: 5,
-        CLUSTER_SIZE: 4,
-        hasTrees: true,
-        wallColor: V(1, .1, 0),
-        oceanColor: V(0, 0, .6),
-        explodeChance: .20,
-        chossChance: .32,
-        explodeCountdown: 35,
-        chossCountdown: 75,
-    };
+    const world = populateWorld();
+    // const level: LevelControl
+    let level = 0;
+    function populateWorld() {
+        const world = [];
+        world[0] = {
+            wallHeight: 45,
+            wallWidth: 20,
+            CLUSTER_VERT_OFFSET: 3,
+            CLUSTER_VERT_VAR: 5,
+            CLUSTER_SIZE: 4,
+            hasTrees: true,
+            wallColor: V(1, .1, 0),
+            oceanColor: V(0, 0, .6),
+            explodeChance: .20,
+            chossChance: .32,
+            explodeCountdown: 35,
+            chossCountdown: 75,
+        };
+        world[1] = {
+            wallHeight: 100,
+            wallWidth: 20,
+            CLUSTER_VERT_OFFSET: 3,
+            CLUSTER_VERT_VAR: 5,
+            CLUSTER_SIZE: 2.5,
+            hasTrees: true,
+            wallColor: V(1, .1, 0),
+            oceanColor: V(0, 0, .6),
+            explodeChance: 0,
+            chossChance: 0,
+            explodeCountdown: 35,
+            chossCountdown: 75,
+        };
+        return world;
+    }
+    // const world = {
+    //   wallHeight: 45,
+    //   wallWidth:20,
+    //   CLUSTER_VERT_OFFSET: 3,
+    //   CLUSTER_VERT_VAR: 5,
+    //   CLUSTER_SIZE: 4,
+    //   hasTrees: true,
+    //   wallColor: V(1,.1,0),
+    //   oceanColor: V(0,0,.6),
+    //   explodeChance: .20,
+    //   chossChance: .32,
+    //   explodeCountdown: 35,
+    //   chossCountdown: 75,
+    // }
     //build wall
     const wall = EM.mk();
-    EM.set(wall, RenderableConstructDef, mkRectMesh(world.wallWidth, 3, world.wallHeight));
-    EM.set(wall, ColorDef, world.wallColor);
-    EM.set(wall, PositionDef, V(0, 1.5, world.wallHeight / 2));
+    EM.set(wall, RenderableConstructDef, mkRectMesh(world[level].wallWidth, 3, world[level].wallHeight));
+    EM.set(wall, ColorDef, world[level].wallColor);
+    EM.set(wall, PositionDef, V(0, 1.5, world[level].wallHeight / 2));
     EM.set(wall, RotationDef, quat.fromYawPitchRoll(0, Math.PI * .1, 0));
     //generate cluster locations:
-    const clusters = generateClusters();
+    let clusters = generateClusters();
     function generateClusters() {
         let clusters = [];
-        let hor = Math.random() * (world.wallWidth - 3) - (world.wallWidth - 3) / 2;
+        let hor = Math.random() * (world[level].wallWidth - 3) - (world[level].wallWidth - 3) / 2;
         let vert = 6.1;
-        let dep = (vert - (world.wallHeight / 2));
+        let dep = (vert - (world[level].wallHeight / 2));
         clusters.push(V(hor, dep, vert));
-        while (clusters[clusters.length - 1][2] < world.wallHeight - 10) {
-            hor = Math.random() * (world.wallWidth - 5) - (world.wallWidth - 5) / 2;
-            vert = Math.random() * world.CLUSTER_VERT_VAR + clusters[clusters.length - 1][2] + world.CLUSTER_VERT_OFFSET;
-            dep = (vert - (world.wallHeight / 2)) * -.33;
+        while (clusters[clusters.length - 1][2] < world[level].wallHeight - 10) {
+            hor = Math.random() * (world[level].wallWidth - 5) - (world[level].wallWidth - 5) / 2;
+            vert = Math.random() * world[level].CLUSTER_VERT_VAR + clusters[clusters.length - 1][2] + world[level].CLUSTER_VERT_OFFSET;
+            dep = (vert - (world[level].wallHeight / 2)) * -.33;
             clusters.push(V(hor, dep, vert));
         }
         return clusters;
     }
     //generate holds
-    const holds = generateHolds();
-    function generateHolds() {
-        const holds = [];
+    const holds = [];
+    let holdsLen = generateHolds(holds);
+    function generateHolds(holds) {
+        // const holds: Hold[] = [];
+        let index = 0;
         for (let i = 0; i < clusters.length; i++) {
             const cluster = clusters[i];
             do {
-                const hold = EM.mk();
-                EM.set(hold, RenderableConstructDef, TetraMesh);
-                EM.set(hold, ColorDef, V(.75, 0, .01));
-                const hor = Math.random() * world.CLUSTER_SIZE + cluster[0] - world.CLUSTER_SIZE / 2;
-                const vert = Math.random() * world.CLUSTER_SIZE + cluster[2] - world.CLUSTER_SIZE / 2;
-                const dep = (vert - (world.wallHeight / 2)) * -.33;
-                EM.set(hold, PositionDef, V(hor, dep, vert));
-                EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, Math.PI * .6, 0));
-                quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
-                EM.set(hold, ScaleDef, V(Math.random() + .5, Math.random() + .5, Math.random() + .5));
-                const holdI = {
-                    entity: hold,
-                    catchPoint: V(hold.position[0], hold.position[1] - 2, hold.position[2]),
-                };
-                holds.push(holdI);
+                let hold;
+                let holdI;
+                if (index === holds.length) {
+                    hold = EM.mk();
+                    EM.set(hold, RenderableConstructDef, TetraMesh);
+                    EM.set(hold, ColorDef, V(.75, 0, .01));
+                    const hor = Math.random() * world[level].CLUSTER_SIZE + cluster[0] - world[level].CLUSTER_SIZE / 2;
+                    const vert = Math.random() * world[level].CLUSTER_SIZE + cluster[2] - world[level].CLUSTER_SIZE / 2;
+                    const dep = (vert - (world[level].wallHeight / 2)) * -.33;
+                    EM.set(hold, PositionDef, V(hor, dep, vert));
+                    EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, Math.PI * .6, 0));
+                    quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
+                    EM.set(hold, ScaleDef, V(Math.random() + .5, Math.random() + .5, Math.random() + .5));
+                    holdI = {
+                        entity: hold,
+                        catchPoint: V(hold.position[0], hold.position[1] - 2, hold.position[2]),
+                    };
+                    holds.push(holdI);
+                }
+                else {
+                    holdI = holds[index];
+                    hold = holdI.entity;
+                    EM.set(hold, ColorDef, V(.75, 0, .01));
+                    const hor = Math.random() * world[level].CLUSTER_SIZE + cluster[0] - world[level].CLUSTER_SIZE / 2;
+                    const vert = Math.random() * world[level].CLUSTER_SIZE + cluster[2] - world[level].CLUSTER_SIZE / 2;
+                    const dep = (vert - (world[level].wallHeight / 2)) * -.33;
+                    EM.set(hold, PositionDef, V(hor, dep, vert));
+                    EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, Math.PI * .6, 0));
+                    quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
+                    EM.set(hold, ScaleDef, V(Math.random() + .5, Math.random() + .5, Math.random() + .5));
+                    holdI = {
+                        entity: hold,
+                        catchPoint: V(hold.position[0], hold.position[1] - 2, hold.position[2]),
+                    };
+                }
                 const holdTypeIndicator = Math.random();
                 if (i === clusters.length - 1) {
                     EM.set(hold, ColorDef, ENDESGA16.lightGreen);
                     holdI.finish = true;
                     break;
                 }
-                else if (i > 0 && holdTypeIndicator < world.explodeChance) {
+                else if (i > 0 && holdTypeIndicator < world[level].explodeChance) {
                     holdI.explode = true;
                     J3.copy(hold.color, V(.05, .05, .05));
                 }
-                else if (i > 0 && holdTypeIndicator < world.explodeChance + world.chossChance) {
+                else if (i > 0 && holdTypeIndicator < world[level].explodeChance + world[level].chossChance) {
                     holdI.choss = true;
                     J3.copy(hold.color, V(0.631, 0.471, 0.322));
                 }
+                index++;
             } while (Math.random() < .6);
         }
-        return holds;
+        return index;
+    }
+    function regenHolds() {
+        clusters = generateClusters();
+        generateHolds(holds);
     }
     //make island:
-    const islandPos = V(world.wallWidth * -.5 - 10, -5, 0);
-    TreeBuilder.mkIsland2(world.wallWidth + 20, 25, 1.5, islandPos);
+    const islandPos = V(world[level].wallWidth * -.5 - 10, -5, 0);
+    TreeBuilder.mkIsland2(world[level].wallWidth + 20, 25, 1.5, islandPos);
     TreeBuilder.mkWater2();
-    if (world.hasTrees) {
-        TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4, 0, 0));
+    if (world[level].hasTrees) {
+        TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[level].wallWidth * -.5 - 4, 0, 0));
     }
-    // if(world.hasTrees && Math.random()>.8){
-    //   TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * -.5 - 4,0,0));
+    // if(world[level].hasTrees && Math.random()>.8){
+    //   TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[level].wallWidth * -.5 - 4,0,0));
     // }
-    if (world.hasTrees) {
-        TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * .5 + 1, 0, 0));
+    if (world[level].hasTrees) {
+        TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[level].wallWidth * .5 + 1, 0, 0));
     }
     // if(Math.random()>.8){
-    //   TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world.wallWidth * .5 + 1,0,0));
+    //   TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[level].wallWidth * .5 + 1,0,0));
     // }
     //generate guy
     const GUY_SCALE = .75;
@@ -417,8 +479,8 @@ export async function initJoelGame() {
     const CAMERA_SPEED = .01;
     const amplitudeArr = [100, 100, 100, 100, 100, 100, 100, 100, 100];
     let maxAmp = 100;
-    let explodeCountdown = world.explodeCountdown;
-    let chossCountdown = world.chossCountdown;
+    let explodeCountdown = world[level].explodeCountdown;
+    let chossCountdown = world[level].chossCountdown;
     let holdShakePos = V(0, 0, 0);
     let explodeArr = [];
     let explodeArrDead = false;
@@ -526,6 +588,7 @@ export async function initJoelGame() {
             gameStarted = true;
             startGame();
         }
+        //controlling lives left and hearts display
         if (!lifeControll.dead && guy.holdHand.position[2] < 0) {
             lifeControll.dead = true;
             breakHeart(lifeControll);
@@ -538,14 +601,14 @@ export async function initJoelGame() {
                 lifeControll.dead = false;
                 resetLevel();
                 if (lifeControll.hearts === 0) {
-                    const lossScreen = buildLossScreen();
-                    const resetButton = displayScreen(lossScreen);
-                    assert(resetButton);
-                    resetButton.onclick = () => {
-                        startGame();
-                        resetLifeControll();
-                        removeScreen(lossScreen);
-                    };
+                    // const lossScreen = buildLossScreen()
+                    displayScreen(pages.loss);
+                    // assert(resetButton);
+                    // resetButton.onclick = () =>{
+                    //   startGame();
+                    //   resetLifeControll();
+                    //   removeScreen(pages.loss);
+                    // }
                 }
             }
         }
@@ -595,8 +658,8 @@ export async function initJoelGame() {
                 HoldMod.killExplodeArr(explodeArr);
                 explodeArrDead = true;
             }
-            explodeCountdown = world.explodeCountdown;
-            chossCountdown = world.chossCountdown;
+            explodeCountdown = world[level].explodeCountdown;
+            chossCountdown = world[level].chossCountdown;
             while (deadHolds.length > 0) {
                 const dh = deadHolds.pop();
                 if (dh?.dead)
@@ -613,8 +676,8 @@ export async function initJoelGame() {
                 HoldMod.killExplodeArr(explodeArr);
                 explodeArrDead = true;
             }
-            explodeCountdown = world.explodeCountdown;
-            chossCountdown = world.chossCountdown;
+            explodeCountdown = world[level].explodeCountdown;
+            chossCountdown = world[level].chossCountdown;
             while (deadHolds.length > 0) {
                 const dh = deadHolds.pop();
                 if (dh?.dead)
@@ -623,7 +686,7 @@ export async function initJoelGame() {
         }
         if (guy.hold.explode) {
             guy.jump.ok = false;
-            if (explodeCountdown === world.explodeCountdown) {
+            if (explodeCountdown === world[level].explodeCountdown) {
                 // explodeSoundEffects[1].play();
                 explodeAudio.elements[0].play();
             }
@@ -655,7 +718,7 @@ export async function initJoelGame() {
             }
         }
         if (guy.hold.choss) {
-            if (chossCountdown === world.chossCountdown) {
+            if (chossCountdown === world[level].chossCountdown) {
                 // explodeSoundEffects[1].play();
                 explodeAudio.elements[0].play();
             }
@@ -688,7 +751,7 @@ export async function initJoelGame() {
             }
         }
         else
-            chossCountdown = world.chossCountdown;
+            chossCountdown = world[level].chossCountdown;
         if (game.live) {
             if (guy.jump.ok && !guy.jump.jump && !mouseIsPressed && inputs.ldown) {
                 mouseIsPressed = true;

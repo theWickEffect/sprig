@@ -1,6 +1,13 @@
 import { ButtonDef } from "../gui/button.js";
 import { assert } from "../utils/util.js";
 
+export interface Pages{
+    home: HTMLDivElement;
+    loss: HTMLDivElement;
+    level: HTMLDivElement[];
+}
+
+
 interface View{
     topDiv: HTMLElement | null;
     title: HTMLHeadingElement;
@@ -50,6 +57,16 @@ function initViewText(){
     view.levelText[1].textContent = "level 1 text";
 
 }
+
+export const pages: Pages = {
+    home: buildStartScreen(),
+    loss: buildLossScreen(),
+    level: buildLevelPages(),
+}
+
+view.continueButton.onclick = () => {
+    window.location.reload();
+}
     
 export function buildStartScreen(): HTMLDivElement{
     const homepageDiv = document.createElement("div");
@@ -59,6 +76,14 @@ export function buildStartScreen(): HTMLDivElement{
     homepageDiv.appendChild(view.playButton);
     // to do: add homepageDiv to body and format css
     return homepageDiv;
+}
+
+export function buildLevelPages(): HTMLDivElement[]{
+    const levelPages: HTMLDivElement[] = [];
+    for(let i=0;i<view.levelText.length;i++){
+        levelPages.push(buildLevelScreen(i));
+    }
+    return levelPages;
 }
 
 export function buildLevelScreen(levelNum: number): HTMLDivElement{

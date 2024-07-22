@@ -34,6 +34,14 @@ function initViewText() {
     view.levelText.push(document.createElement('p'));
     view.levelText[1].textContent = "level 1 text";
 }
+export const pages = {
+    home: buildStartScreen(),
+    loss: buildLossScreen(),
+    level: buildLevelPages(),
+};
+view.continueButton.onclick = () => {
+    window.location.reload();
+};
 export function buildStartScreen() {
     const homepageDiv = document.createElement("div");
     homepageDiv.setAttribute("id", "start-screen-div");
@@ -42,6 +50,13 @@ export function buildStartScreen() {
     homepageDiv.appendChild(view.playButton);
     // to do: add homepageDiv to body and format css
     return homepageDiv;
+}
+export function buildLevelPages() {
+    const levelPages = [];
+    for (let i = 0; i < view.levelText.length; i++) {
+        levelPages.push(buildLevelScreen(i));
+    }
+    return levelPages;
 }
 export function buildLevelScreen(levelNum) {
     const levelDiv = document.createElement("div");
