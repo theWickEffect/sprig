@@ -27,7 +27,7 @@ import { TreeBuilder } from "./palm-tree.js";
 import { HoldMod } from "./hold-modify.js";
 import { DeadDef } from "../ecs/delete.js";
 import { PowerMeter } from "./power-meter.js";
-import { buildLossScreen, displayScreen, displayStartScreen, removeStartScreen } from "./build-html.js";
+import { buildLossScreen, displayScreen, displayStartScreen, removeScreen, removeStartScreen } from "./build-html.js";
 import { breakHeart, killHeart, updateHearts } from "./in-game-dynamic-html.js";
 const DBG_GHOST = false;
 const DEBUG = false;
@@ -538,11 +538,13 @@ export async function initJoelGame() {
                 lifeControll.dead = false;
                 resetLevel();
                 if (lifeControll.hearts === 0) {
-                    const resetButton = displayScreen(buildLossScreen());
+                    const lossScreen = buildLossScreen();
+                    const resetButton = displayScreen(lossScreen);
                     assert(resetButton);
                     resetButton.onclick = () => {
                         startGame();
                         resetLifeControll();
+                        removeScreen(lossScreen);
                     };
                 }
             }

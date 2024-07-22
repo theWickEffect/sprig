@@ -94,6 +94,9 @@ export function removeStartScreen() {
         view.topDiv?.removeChild(startScreen);
     }
 }
+export function removeScreen(divElement) {
+    view.topDiv?.removeChild(divElement);
+}
 export function updatePlayFunction(playFunc) {
     playFunction = playFunc;
 }
