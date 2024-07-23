@@ -283,6 +283,7 @@ export async function initJoelGame() {
                 else {
                     holdI = holds[index];
                     hold = holdI.entity;
+                    // if hold is dead revive it
                     EM.set(hold, ColorDef, V(.75, 0, .01));
                     const hor = Math.random() * world[level].CLUSTER_SIZE + cluster[0] - world[level].CLUSTER_SIZE / 2;
                     const vert = Math.random() * world[level].CLUSTER_SIZE + cluster[2] - world[level].CLUSTER_SIZE / 2;
@@ -291,10 +292,9 @@ export async function initJoelGame() {
                     EM.set(hold, RotationDef, quat.fromYawPitchRoll(0, Math.PI * .6, 0));
                     quat.yaw(hold.rotation, Math.random() * 3, hold.rotation);
                     EM.set(hold, ScaleDef, V(Math.random() + .5, Math.random() + .5, Math.random() + .5));
-                    holdI = {
-                        entity: hold,
-                        catchPoint: V(hold.position[0], hold.position[1] - 2, hold.position[2]),
-                    };
+                    holdI.choss = false;
+                    holdI.explode = false;
+                    holdI.finish = false;
                 }
                 const holdTypeIndicator = Math.random();
                 if (i === clusters.length - 1) {
@@ -312,6 +312,10 @@ export async function initJoelGame() {
                 }
                 index++;
             } while (Math.random() < .6);
+        }
+        for (let i = index; i < holds.length; i++) {
+            const hold = holds[i];
+            //make hold dead
         }
         return index;
     }
