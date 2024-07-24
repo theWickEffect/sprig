@@ -12,6 +12,21 @@ import { createEmptyMesh } from "../wood/wood.js";
 import { J3 } from "./joel-game.js";
 
 export module TreeBuilder{
+    export function changeWaterColor(color: V3, water: Mesh){
+        for(let i=0;i<water.colors.length;i++){
+            water.colors[i] = J3.clone(color);
+            color[0] += Math.random() * .05 -.025;
+            color[1] += Math.random() * .05 -.025;
+            color[2] += Math.random() * .05 -.025;
+            if(color[0]>1) color[0] = 1;
+            if(color[0]<0) color[0] = 0;
+            if(color[1]>1) color[1] = 1;
+            if(color[1]<0) color[1] = 0;
+            if(color[2]>1) color[2] = 1;
+            if(color[2]<0) color[2] = 0;
+        }
+        //push water colors to cpu
+    }
     export function mkWater(
         color: V3 = V(.086,.969,.925),
         size: number = 10000,
@@ -40,7 +55,7 @@ export module TreeBuilder{
         increment: number = 20,
         zHt: number = .1, 
         pos: V3 = V(0,0,0),
-        ){
+        ): Mesh{
         const waterRaw = createEmptyMesh("water");
         waterRaw.surfaceIds = [];
         const waterMesh = waterRaw as Mesh;
@@ -68,6 +83,7 @@ export module TreeBuilder{
         let water = EM.mk();
         EM.set(water, RenderableConstructDef, waterMesh);
         EM.set(water,PositionDef,pos);
+        return waterMesh;
     }
     export function mkIsland2(
         xWid: number = 40, 
@@ -106,7 +122,6 @@ export module TreeBuilder{
             verts[verts.length-1][x][2] = (verts[verts.length-1][x-1][2]) * curveRate;
             verts[0][x2][2] = (verts[0][x2+1][2]) * curveRate;
             verts[verts.length-1][x2][2] = (verts[verts.length-1][x2+1][2]) * curveRate;
-
         }
 
         for(let y = 1; y < verts.length/2; y++){

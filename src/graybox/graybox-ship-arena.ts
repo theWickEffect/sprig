@@ -598,7 +598,9 @@ function doDeadObjAndChildren(e: Entity) {
   if (ChildrenDef.isOn(e)) {
     e.children.forEach(doDeadObjAndChildren);
   }
+  
   EM.set(e, DeadDef);
+  
   e.dead.processed = true; // TODO(@darzu): HACK. how to manage this?
 }
 

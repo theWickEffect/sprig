@@ -231,11 +231,15 @@ export async function initJoelGame() {
     //   chossCountdown: 75,
     // }
     //build wall
-    const wall = EM.mk();
-    EM.set(wall, RenderableConstructDef, mkRectMesh(world[level].wallWidth, 3, world[level].wallHeight));
-    EM.set(wall, ColorDef, world[level].wallColor);
-    EM.set(wall, PositionDef, V(0, 1.5, world[level].wallHeight / 2));
-    EM.set(wall, RotationDef, quat.fromYawPitchRoll(0, Math.PI * .1, 0));
+    let wall = mkWall();
+    function mkWall() {
+        const wall = EM.mk();
+        EM.set(wall, RenderableConstructDef, mkRectMesh(world[level].wallWidth, 3, world[level].wallHeight));
+        EM.set(wall, ColorDef, world[level].wallColor);
+        EM.set(wall, PositionDef, V(0, 1.5, world[level].wallHeight / 2));
+        EM.set(wall, RotationDef, quat.fromYawPitchRoll(0, Math.PI * .1, 0));
+        return wall;
+    }
     //generate cluster locations:
     let clusters = generateClusters();
     function generateClusters() {
@@ -284,6 +288,8 @@ export async function initJoelGame() {
                     holdI = holds[index];
                     hold = holdI.entity;
                     // if hold is dead revive it
+                    if (DeadDef.isOn(hold))
+                        EM.removeComponent(hold.id, DeadDef);
                     EM.set(hold, ColorDef, V(.75, 0, .01));
                     const hor = Math.random() * world[level].CLUSTER_SIZE + cluster[0] - world[level].CLUSTER_SIZE / 2;
                     const vert = Math.random() * world[level].CLUSTER_SIZE + cluster[2] - world[level].CLUSTER_SIZE / 2;
@@ -316,15 +322,24 @@ export async function initJoelGame() {
         for (let i = index; i < holds.length; i++) {
             const hold = holds[i];
             //make hold dead
+            EM.set(hold.entity, DeadDef);
         }
         return index;
+    }
+    function rebuildWall() {
+        EM.set(wall, DeadDef);
+        wall = mkWall();
     }
     function regenHolds() {
         clusters = generateClusters();
         generateHolds(holds);
     }
     //make island:
-    const islandPos = V(world[level].wallWidth * -.5 - 10, -5, 0);
+    function getIslandPos() {
+        const islandPos = V(world[level].wallWidth * -.5 - 10, (-5 / 45) * world[level].wallHeight, 0);
+        return islandPos;
+    }
+    let islandPos = getIslandPos();
     TreeBuilder.mkIsland2(world[level].wallWidth + 20, 25, 1.5, islandPos);
     TreeBuilder.mkWater2();
     if (world[level].hasTrees) {
