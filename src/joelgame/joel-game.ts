@@ -184,6 +184,18 @@ export interface LifeControll{
   heartbreakCountReset: number;
 }
 
+export const game: GameState = {
+  live: false,
+  level: 0,
+  frameCount: 0,
+  finish: {
+    finish: false,
+    count: 180,
+    countReset: 180,
+  }
+};
+
+
 export async function initJoelGame() {
   stdGridRender.fragOverrides!.lineSpacing1 = 8.0;
   stdGridRender.fragOverrides!.lineWidth1 = 0.05;
@@ -224,16 +236,7 @@ export async function initJoelGame() {
   const gridDef = [RenderableConstructDef, PositionDef, ScaleDef, ColorDef] as const;
 
 
-  const game: GameState = {
-    live: false,
-    level: 0,
-    frameCount: 0,
-    finish: {
-      finish: false,
-      count: 180,
-      countReset: 180,
-    }
-  };
+  
 
 
 
@@ -329,7 +332,7 @@ export async function initJoelGame() {
       CLUSTER_SIZE: 2.5,
       hasTrees: true,
       wallColor: V(1,.1,0),
-      waterColor: V(1,0,.01),
+      waterColor: V(0,0,.6),
       explodeChance: 0,
       chossChance: 0,
       explodeCountdown: 35,
@@ -806,13 +809,18 @@ export async function initJoelGame() {
         // game.live = false;
         removeFinishText();
         game.level++;
-        mkNextLevel();
-        resetLevel();
-        const continueButton = displayScreen(pages.level[game.level]);
-        assert(continueButton);
-        continueButton.onclick = () =>{
-          removeScreen(pages.level[game.level]);
-          game.live = true;
+        if(game.level === world.length){
+          displayScreen(pages.win);
+        }
+        else {
+          mkNextLevel();
+          resetLevel();
+          const continueButton = displayScreen(pages.level[game.level]);
+          assert(continueButton);
+          continueButton.onclick = () =>{
+            removeScreen(pages.level[game.level]);
+            game.live = true;
+          }
         }
       }
 

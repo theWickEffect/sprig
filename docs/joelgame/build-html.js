@@ -1,15 +1,17 @@
 import { assert } from "../utils/util.js";
+import { game } from "./joel-game.js";
 const view = {
     topDiv: document.getElementById("top-div"),
     title: document.createElement("h1"),
     smallTitle: document.createElement("h2"),
     instructions: document.createElement("p"),
     playButton: document.createElement("button"),
-    continueButton: document.createElement("button"),
+    winContinueButton: document.createElement("button"),
+    lossContinueButton: document.createElement("button"),
     goButton: document.createElement("button"),
     lossHeading: document.createElement("h3"),
     winHeading: document.createElement("h3"),
-    finishHeading: document.createElement("h3"),
+    finishHeading: [],
     levelText: [],
     levelTitle: [],
 };
@@ -22,11 +24,23 @@ function initViewText() {
     view.title.textContent = "Wall Rider 9000";
     view.instructions.textContent = "Controlls: Click, Drag, Release";
     view.playButton.textContent = "Play";
-    view.continueButton.textContent = "Continue";
+    view.winContinueButton.textContent = "Play Again";
+    view.lossContinueButton.textContent = "Play Again";
     view.goButton.textContent = "Lets Go!";
     view.lossHeading.textContent = "You Loose";
-    view.finishHeading.textContent = "Nice!";
     view.winHeading.textContent = "You Win!";
+    view.finishHeading.push(document.createElement('h3'));
+    view.finishHeading[0].textContent = "Nice!";
+    view.finishHeading.push(document.createElement('h3'));
+    view.finishHeading[0].textContent = "Sick!";
+    view.finishHeading.push(document.createElement('h3'));
+    view.finishHeading[0].textContent = "Sweet!";
+    view.finishHeading.push(document.createElement('h3'));
+    view.finishHeading[0].textContent = "Spicy!";
+    view.finishHeading.push(document.createElement('h3'));
+    view.finishHeading[0].textContent = "Cool!";
+    view.finishHeading.push(document.createElement('h3'));
+    view.finishHeading[0].textContent = "Done!";
     view.smallTitle.textContent = view.title.textContent;
     view.levelTitle.push(document.createElement('h4'));
     view.levelTitle[0].textContent = "Tutorial Title";
@@ -54,14 +68,20 @@ function initViewText() {
     view.levelText[5].textContent = "level 5 text";
 }
 function markViewElements() {
-    view.finishHeading.setAttribute("id", "finishText");
+    for (let i = 0; i < view.finishHeading.length; i++) {
+        view.finishHeading[i].setAttribute("id", "finishText");
+    }
 }
 export const pages = {
     home: buildStartScreen(),
     loss: buildLossScreen(),
     level: buildLevelPages(),
+    win: buildWinScreen(),
 };
-view.continueButton.onclick = () => {
+view.winContinueButton.onclick = () => {
+    window.location.reload();
+};
+view.lossContinueButton.onclick = () => {
     window.location.reload();
 };
 export function buildStartScreen() {
@@ -97,7 +117,7 @@ export function buildWinScreen() {
     winDiv.setAttribute("id", "win-div");
     winDiv.appendChild(view.smallTitle);
     winDiv.appendChild(view.winHeading);
-    winDiv.appendChild(view.continueButton);
+    winDiv.appendChild(view.winContinueButton);
     //to do: add a graphic?
     return winDiv;
 }
@@ -106,7 +126,7 @@ export function buildLossScreen() {
     lossDiv.setAttribute("id", "loss-div");
     lossDiv.appendChild(view.smallTitle);
     lossDiv.appendChild(view.lossHeading);
-    lossDiv.appendChild(view.continueButton);
+    lossDiv.appendChild(view.lossContinueButton);
     //to do: add a graphic?
     return lossDiv;
 }
@@ -121,13 +141,13 @@ export function displayStartScreen() {
     // }
     return view.playButton;
 }
-export function displayFinishText() {
+export function displayFinishText(level = game.level) {
     // assert(view.topDiv);
-    view.topDiv?.appendChild(view.finishHeading);
+    view.topDiv?.appendChild(view.finishHeading[level]);
     // return () => {view.topDiv?.removeChild(view.finishHeading)};
 }
-export function removeFinishText() {
-    view.topDiv?.removeChild(view.finishHeading);
+export function removeFinishText(level = game.level) {
+    view.topDiv?.removeChild(view.finishHeading[level]);
 }
 export function displayScreen(screen) {
     console.log("display: " + screen.getAttribute("id"));
