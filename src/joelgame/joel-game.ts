@@ -156,7 +156,7 @@ export interface WorldParams {
   CLUSTER_SIZE: number;
   hasTrees: boolean;
   wallColor: V3;
-  oceanColor: V3;
+  waterColor: V3;
   explodeChance: number;
   chossChance: number;
   explodeCountdown: number;
@@ -287,7 +287,7 @@ export async function initJoelGame() {
       CLUSTER_SIZE: 4,
       hasTrees: true,
       wallColor: V(1,.1,0),
-      oceanColor: V(0,0,.6),
+      waterColor: V(0,0,.6),
       explodeChance: .20,
       chossChance: .32,
       explodeCountdown: 35,
@@ -301,7 +301,7 @@ export async function initJoelGame() {
       CLUSTER_SIZE: 2.5,
       hasTrees: true,
       wallColor: V(1,.1,0),
-      oceanColor: V(0,0,.6),
+      waterColor: V(0,0,.6),
       explodeChance: 0,
       chossChance: 0,
       explodeCountdown: 35,
@@ -407,6 +407,7 @@ export async function initJoelGame() {
         if(i===clusters.length-1){
           EM.set(hold, ColorDef, ENDESGA16.lightGreen);
           holdI.finish = true;
+          index++;
           break;
         } 
         else if(i>0 && holdTypeIndicator < world[level].explodeChance) {
@@ -444,9 +445,12 @@ export async function initJoelGame() {
     return islandPos;
   }
   let islandPos = getIslandPos();
-  TreeBuilder.mkIsland2(world[level].wallWidth+20,25,1.5,islandPos);
-  TreeBuilder.mkWater2();
+  const setIslandLoc = TreeBuilder.mkIsland2(world[level].wallWidth+20,25,1.5,islandPos);
+  const changeWaterColor = TreeBuilder.mkWater2();
 
+  console.log("changeWaterColor type: " + typeof changeWaterColor);
+
+  changeWaterColor(V(1,0,0));
 
   if(world[level].hasTrees){
     TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[level].wallWidth * -.5 - 4,0,0));
@@ -655,6 +659,7 @@ export async function initJoelGame() {
     }
   }
 
+
   function getMax(arr: number[]): number{
     let max = arr[0];
     for(let i=0;i<arr.length;i++){
@@ -717,6 +722,20 @@ export async function initJoelGame() {
       game.live = true;
       guy.jump.ok = true;
     };
+  }
+
+  function makeNextLevel(){
+    rebuildWall();
+    islandPos = getIslandPos();
+    setIslandLoc(islandPos);
+    changeWaterColor(world[level].waterColor);
+    if(world[level].hasTrees){
+
+    }
+    else{
+
+    }
+    
   }
 
   function startGame(){

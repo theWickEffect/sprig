@@ -1,6 +1,7 @@
 import { ColorDef } from "../color/color-ecs.js";
 import { ENDESGA16 } from "../color/palettes.js";
 import { EM } from "../ecs/ecs.js";
+import { EntityW } from "../ecs/em-entities.js";
 import { V, V3, mat4, quat } from "../matrix/sprig-matrix.js";
 import { HexMesh } from "../meshes/mesh-list.js";
 import { Mesh, RawMesh, transformMesh } from "../meshes/mesh.js";
@@ -12,21 +13,25 @@ import { createEmptyMesh } from "../wood/wood.js";
 import { J3 } from "./joel-game.js";
 
 export module TreeBuilder{
-    export function changeWaterColor(color: V3, water: Mesh){
-        for(let i=0;i<water.colors.length;i++){
-            water.colors[i] = J3.clone(color);
-            color[0] += Math.random() * .05 -.025;
-            color[1] += Math.random() * .05 -.025;
-            color[2] += Math.random() * .05 -.025;
-            if(color[0]>1) color[0] = 1;
-            if(color[0]<0) color[0] = 0;
-            if(color[1]>1) color[1] = 1;
-            if(color[1]<0) color[1] = 0;
-            if(color[2]>1) color[2] = 1;
-            if(color[2]<0) color[2] = 0;
-        }
-        //push water colors to cpu
-    }
+    // let waterMesh: Mesh;
+
+    // export function changeWaterColor(color: V3, water: Mesh, water2: EntityW<[typeof RenderableDef]>){
+    //     for(let i=0;i<water.colors.length;i++){
+    //         water.colors[i] = J3.clone(color);
+    //         color[0] += Math.random() * .05 -.025;
+    //         color[1] += Math.random() * .05 -.025;
+    //         color[2] += Math.random() * .05 -.025;
+    //         if(color[0]>1) color[0] = 1;
+    //         if(color[0]<0) color[0] = 0;
+    //         if(color[1]>1) color[1] = 1;
+    //         if(color[1]<0) color[1] = 0;
+    //         if(color[2]>1) color[2] = 1;
+    //         if(color[2]<0) color[2] = 0;
+    //     }
+    //     //push water colors to gpu
+    //     // water.object.renderable.meshHandle.pool.updateMeshVertices(water.object.renderable.meshHandle,water.mesh);
+    //     water2.renderable.meshHandle.pool.updateMeshVertices(water2.renderable.meshHandle,water);
+    // }
     export function mkWater(
         color: V3 = V(.086,.969,.925),
         size: number = 10000,
@@ -49,13 +54,14 @@ export module TreeBuilder{
         EM.set(water, RenderableConstructDef, waterMesh);
         EM.set(water,PositionDef,pos);
     }
+
     export function mkWater2(
         color: V3 = V(.086,.969,.925),
         size: number = 2000,
         increment: number = 20,
         zHt: number = .1, 
         pos: V3 = V(0,0,0),
-        ): Mesh{
+        ): (color:V3) => void {
         const waterRaw = createEmptyMesh("water");
         waterRaw.surfaceIds = [];
         const waterMesh = waterRaw as Mesh;
@@ -80,18 +86,44 @@ export module TreeBuilder{
             }
         }
         
-        let water = EM.mk();
+        const water = EM.mk();
         EM.set(water, RenderableConstructDef, waterMesh);
         EM.set(water,PositionDef,pos);
-        return waterMesh;
+        // assert(RenderableDef.isOn(water1));
+        // const water: EntityW<[typeof RenderableDef]> = water1;
+
+        function changeWC(color: V3){
+            for(let i=0;i<waterMesh.colors.length;i++){
+                waterMesh.colors[i] = J3.clone(color);
+                color[0] += Math.random() * .05 -.025;
+                color[1] += Math.random() * .05 -.025;
+                color[2] += Math.random() * .05 -.025;
+                if(color[0]>1) color[0] = 1;
+                if(color[0]<0) color[0] = 0;
+                if(color[1]>1) color[1] = 1;
+                if(color[1]<0) color[1] = 0;
+                if(color[2]>1) color[2] = 1;
+                if(color[2]<0) color[2] = 0;
+            }
+            if(RenderableDef.isOn(water)){
+                water.renderable.meshHandle.pool.updateMeshVertices(water.renderable.meshHandle,waterMesh);
+            }
+        }
+        
+        console.log("here");
+
+        console.log("changeWC type: " + typeof changeWC);
+
+        return changeWC;
     }
+
     export function mkIsland2(
         xWid: number = 40, 
         yDep: number = 25, 
         zHt: number = 3, 
         pos: V3 = V(0,0,0),
         color: V3 = V(.7,.2,0),
-        ){
+        ): (pos: V3) => void{
         const verts: V3[][] = [];
         for(let y = 0; y < yDep; y++){
             const nextVerts: V3[] = []
@@ -103,6 +135,7 @@ export module TreeBuilder{
             }
             verts.push(nextVerts);
         }
+        console.log("mkIsland2");
         verts[0][0][2] = -8;
         verts[0][verts[0].length-1][2] = -7;
         verts[verts.length-1][0][2] = -6;
@@ -178,6 +211,12 @@ export module TreeBuilder{
             verts[y][x][2] = z;
         }
 
+        function updateIslandPos(pos: V3){
+            assert(PositionDef.isOn(island));
+            island.position = pos;
+        }
+
+        return updateIslandPos;
     }
     export function mkIsland(
         wallWidth: number  = 20, 
