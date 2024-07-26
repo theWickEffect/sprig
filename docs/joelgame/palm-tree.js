@@ -1,12 +1,14 @@
+import { ColorDef } from "../color/color-ecs.js";
 import { ENDESGA16 } from "../color/palettes.js";
+import { DeadDef } from "../ecs/delete.js";
 import { EM } from "../ecs/ecs.js";
-import { V } from "../matrix/sprig-matrix.js";
-import { PositionDef } from "../physics/transform.js";
+import { V, quat } from "../matrix/sprig-matrix.js";
+import { TetraMesh } from "../meshes/mesh-list.js";
+import { PositionDef, RotationDef, ScaleDef } from "../physics/transform.js";
 import { RenderableConstructDef, RenderableDef } from "../render/renderer-ecs.js";
 import { assert } from "../utils/util-no-import.js";
 import { createEmptyMesh } from "../wood/wood.js";
 import { J3 } from "./joel-game.js";
-export const gameName = "Crimps Sharma - Dyno Master";
 export var TreeBuilder;
 (function (TreeBuilder) {
     // let waterMesh: Mesh;
@@ -107,6 +109,94 @@ export var TreeBuilder;
         return changeWC;
     }
     TreeBuilder.mkWater2 = mkWater2;
+    function mkMountains(color = V(.1, .1, .1)) {
+        let loc = V(-1000, 500, -1);
+        console.log("making mountains");
+        const mountains = [];
+        while (loc[0] < 1200) {
+            const mountain = EM.mk();
+            EM.set(mountain, RenderableConstructDef, TetraMesh);
+            EM.set(mountain, ScaleDef, V(60 + Math.random() * 70, 20 + Math.random() * 50, 30 + Math.random() * 120));
+            EM.set(mountain, RotationDef, quat.fromYawPitchRoll(Math.random() - .5, 0, 0));
+            EM.set(mountain, ColorDef, V(Math.random() * .1 - .05 + color[0], Math.random() * .1 - .05 + color[1], Math.random() * .1 - .05 + color[2]));
+            EM.set(mountain, PositionDef, J3.clone(loc));
+            mountain.position[1] += 100 - Math.random() * 200;
+            mountains.push(mountain);
+            loc[0] += 100 + Math.random() * 150;
+            loc[1] += 20 - Math.random() * 40;
+        }
+        return mountains;
+    }
+    TreeBuilder.mkMountains = mkMountains;
+    function killMountains(mountains) {
+        for (const mountain of mountains) {
+            EM.set(mountain, DeadDef);
+        }
+    }
+    TreeBuilder.killMountains = killMountains;
+    function reviveMountains(mountains, color) {
+        for (const mountain of mountains) {
+            if (color) {
+                assert(ColorDef.isOn(mountain));
+                J3.copy(mountain.color, color);
+                mountain.color[0] += .05 - Math.random() * .1;
+                mountain.color[1] += .05 - Math.random() * .1;
+                mountain.color[2] += .05 - Math.random() * .1;
+            }
+            if (DeadDef.isOn(mountain)) {
+                EM.removeComponent(mountain.id, DeadDef);
+            }
+        }
+    }
+    TreeBuilder.reviveMountains = reviveMountains;
+    function mkRocks(color = V(.1, .1, .1), loc = V(0, 0, 0)) {
+        // const rockChance = .98
+        const rockNumber = 75;
+        const spread = 60;
+        const constScale = 1;
+        const randScale = 1;
+        function getScale() {
+            return Math.random() * randScale + constScale;
+        }
+        console.log("making rocks");
+        const rocks = [];
+        for (let i = 0; i < rockNumber; i++) {
+            const rock = EM.mk();
+            EM.set(rock, RenderableConstructDef, TetraMesh);
+            EM.set(rock, ScaleDef, V(getScale(), getScale(), getScale()));
+            EM.set(rock, RotationDef, quat.fromYawPitchRoll(Math.random() * 6, 0, 0));
+            EM.set(rock, ColorDef, V(Math.random() * .1 - .05 + color[0], Math.random() * .1 - .05 + color[1], Math.random() * .1 - .05 + color[2]));
+            EM.set(rock, PositionDef, V(loc[0] - spread + Math.random() * spread * 2, loc[1] - spread + Math.random() * spread * 2, -1));
+            rocks.push(rock);
+        }
+        return rocks;
+    }
+    TreeBuilder.mkRocks = mkRocks;
+    function killRocks(rocks) {
+        for (const rock of rocks) {
+            EM.set(rock, DeadDef);
+        }
+    }
+    TreeBuilder.killRocks = killRocks;
+    function reviveRocks(rocks, color, loc = V(0, 0, 0)) {
+        const spread = 50;
+        for (const rock of rocks) {
+            if (color) {
+                assert(ColorDef.isOn(rock));
+                J3.copy(rock.color, color);
+                rock.color[0] += .05 - Math.random() * .1;
+                rock.color[1] += .05 - Math.random() * .1;
+                rock.color[2] += .05 - Math.random() * .1;
+                assert(PositionDef.isOn(rock));
+                rock.position[0] = loc[0] + spread - Math.random() * spread * 2;
+                rock.position[1] = loc[1] + spread - Math.random() * spread * 2;
+            }
+            if (DeadDef.isOn(rock)) {
+                EM.removeComponent(rock.id, DeadDef);
+            }
+        }
+    }
+    TreeBuilder.reviveRocks = reviveRocks;
     function mkIsland2(xWid = 40, yDep = 25, zHt = 3, pos = V(0, 0, 0), color = V(.7, .2, 0)) {
         const verts = [];
         for (let y = 0; y < yDep; y++) {

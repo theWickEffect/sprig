@@ -114,6 +114,7 @@ export const game = {
         countReset: 180,
     }
 };
+export const backgroundAssets = {};
 export async function initJoelGame() {
     stdGridRender.fragOverrides.lineSpacing1 = 8.0;
     stdGridRender.fragOverrides.lineWidth1 = 0.05;
@@ -172,6 +173,14 @@ export async function initJoelGame() {
     EM.set(sky, PositionDef, V(0, 0, -100));
     const skyMesh = domeMesh;
     EM.set(sky, RenderableConstructDef, skyMesh, undefined, undefined, SKY_MASK);
+    function killSky() {
+        EM.set(sky, DeadDef);
+    }
+    function reviveSky() {
+        if (DeadDef.isOn(sky)) {
+            EM.removeComponent(sky.id, DeadDef);
+        }
+    }
     // interface worldParams {
     //   wallHeight: number;
     //   wallWidth: number;
@@ -215,11 +224,12 @@ export async function initJoelGame() {
             CLUSTER_VERT_VAR: 5,
             CLUSTER_SIZE: 4,
             hasTrees: true,
-            hasMountains: false,
-            hasRocks: false,
+            hasMountains: true,
+            hasRocks: true,
             hasSky: true,
             wallColor: V(1, .1, 0),
             waterColor: V(0, 0, .6),
+            mountainColor: V(.15, .05, .05),
             explodeChance: .20,
             chossChance: .32,
             explodeCountdown: 35,
@@ -633,6 +643,35 @@ export async function initJoelGame() {
         }
         // change island color?
         //make mountains?
+        if (world[game.level].hasMountains) {
+            if (backgroundAssets.mountains) {
+                TreeBuilder.reviveMountains(backgroundAssets.mountains, world[game.level].mountainColor);
+            }
+            else {
+                backgroundAssets.mountains = TreeBuilder.mkMountains(world[game.level].mountainColor);
+            }
+        }
+        else if (backgroundAssets.mountains) {
+            TreeBuilder.killMountains(backgroundAssets.mountains);
+        }
+        //toggleSky
+        if (world[game.level].hasSky) {
+            reviveSky();
+        }
+        else
+            killSky();
+        //toggleRocks
+        if (world[game.level].hasRocks) {
+            if (backgroundAssets.rocks) {
+                TreeBuilder.reviveRocks(backgroundAssets.rocks, world[game.level].mountainColor, islandPos);
+            }
+            else {
+                TreeBuilder.mkRocks(world[game.level].mountainColor, islandPos);
+            }
+        }
+        else if (backgroundAssets.rocks) {
+            TreeBuilder.killRocks(backgroundAssets.rocks);
+        }
     }
     function startGame() {
         guy.jumpHand.fixed = false;

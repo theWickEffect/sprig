@@ -36,7 +36,7 @@ import { LinearVelocityDef } from "../motion/velocity.js";
 import { NonupdatableComponentDef } from "../ecs/em-components.js";
 import { AudioGraph, ActionAudioData, buildFreqDataArray, configureAnalyser, createAudioGraph, mkSoundEffectsArray, mkActionAudioData, endAndResetActionAudio, updateActionAudio, resetActionAudio } from "./audio-code.js";
 import { skyPipeline } from "../render/pipelines/std-sky.js";
-import { TreeBuilder } from "./palm-tree.js";
+import { BackgroundAssets, TreeBuilder } from "./palm-tree.js";
 import { HoldMod } from "./hold-modify.js";
 import { DeadDef } from "../ecs/delete.js";
 import { PowerMeter } from "./power-meter.js";
@@ -160,6 +160,7 @@ export interface WorldParams {
   hasSky: boolean;
   wallColor: V3;
   waterColor: V3;
+  mountainColor?: V3;
   explodeChance: number;
   chossChance: number;
   explodeCountdown: number;
@@ -197,6 +198,8 @@ export const game: GameState = {
     countReset: 180,
   }
 };
+
+export const backgroundAssets: BackgroundAssets = {};
 
 
 export async function initJoelGame() {
@@ -276,6 +279,14 @@ export async function initJoelGame() {
   const skyMesh = domeMesh;
   EM.set(sky, RenderableConstructDef, skyMesh, undefined, undefined, SKY_MASK);
 
+  function killSky(){
+    EM.set(sky,DeadDef);
+  }
+  function reviveSky(){
+    if(DeadDef.isOn(sky)){
+      EM.removeComponent(sky.id,DeadDef);
+    }
+  }
   
   // interface worldParams {
   //   wallHeight: number;
@@ -311,6 +322,7 @@ export async function initJoelGame() {
       hasSky: true,
       wallColor: V(1,.1,0),
       waterColor: V(0,0,.6),
+      
       explodeChance: 0,
       chossChance: 0,
       explodeCountdown: 35,
@@ -323,11 +335,12 @@ export async function initJoelGame() {
       CLUSTER_VERT_VAR: 5,
       CLUSTER_SIZE: 4,
       hasTrees: true,
-      hasMountains: false,
-      hasRocks: false,
+      hasMountains: true,
+      hasRocks: true,
       hasSky: true,
       wallColor: V(1,.1,0),
       waterColor: V(0,0,.6),
+      mountainColor: V(.15,.05,.05),
       explodeChance: .20,
       chossChance: .32,
       explodeCountdown: 35,
@@ -785,6 +798,36 @@ export async function initJoelGame() {
     }
     // change island color?
     //make mountains?
+    if(world[game.level].hasMountains){
+      if(backgroundAssets.mountains){
+        TreeBuilder.reviveMountains(backgroundAssets.mountains, world[game.level].mountainColor);
+      }
+      else{
+        backgroundAssets.mountains = TreeBuilder.mkMountains(world[game.level].mountainColor);
+      }
+    }
+    else if(backgroundAssets.mountains){
+      TreeBuilder.killMountains(backgroundAssets.mountains);
+    } 
+
+    //toggleSky
+    if(world[game.level].hasSky){
+      reviveSky();
+    }
+    else killSky();
+
+    //toggleRocks
+    if(world[game.level].hasRocks){
+      if(backgroundAssets.rocks){
+        TreeBuilder.reviveRocks(backgroundAssets.rocks, world[game.level].mountainColor,islandPos);
+      }
+      else{
+        TreeBuilder.mkRocks(world[game.level].mountainColor, islandPos);
+      }
+    }
+    else if (backgroundAssets.rocks){
+      TreeBuilder.killRocks(backgroundAssets.rocks);
+    }
   }
 
   function startGame(){
