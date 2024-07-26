@@ -12,6 +12,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+128+Text&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -109,6 +112,9 @@
     }
 
     #level-div {
+      display:grid;
+      grid-template-columns: 15%,70%,15%;
+      grid-template-rows: 14%,15%,1%,25%,15%,1fr;
       z-index: 12;
       position: absolute;
       width: 100%;
@@ -116,10 +122,31 @@
       background-color: purple;
       color: rgb(235, 165, 235);
       /* color: #d7f9fc; */
-      font-family: "Libre Barcode 128 Text", system-ui;
+      font-family: "Share Tech Mono", monospace;
       font-size: 100px;
       text-align: center;
       font-weight:normal;
+      h4{
+        grid-column: 2;
+        grid-row: 2;
+        font-size: 100px;
+        text-align: center;
+        font-weight:normal;
+      }
+      p{
+        grid-column: 2;
+        grid-row: 4;
+        font-size: 50px;
+        color: rgb(190, 237, 121);
+        text-align: center;
+        font-weight:normal;
+      }
+      button{
+        grid-column: 2;
+        grid-row: 5;
+        /* position: relative;
+        left: 50%; */
+      }
     }
 
     #win-div {

@@ -51,7 +51,7 @@ function initViewText() {
     view.finishHeading[6].textContent = "Done!";
     view.smallTitle.textContent = view.title.textContent;
     view.levelTitle.push(document.createElement('h4'));
-    view.levelTitle[0].textContent = "Training";
+    view.levelTitle[0].textContent = "Training:";
     view.levelTitle.push(document.createElement('h4'));
     view.levelTitle[1].textContent = "The Boulder";
     view.levelTitle.push(document.createElement('h4'));
@@ -65,7 +65,7 @@ function initViewText() {
     view.levelTitle.push(document.createElement('h4'));
     view.levelTitle[6].textContent = "The Mega-Proj";
     view.levelText.push(document.createElement('p'));
-    view.levelText[0].textContent = "Press, Drag, Release. No footwork necessary!";
+    view.levelText[0].textContent = "Climbing is easy! Use the left button on your mouse to: Press, Drag, Release. No footwork necessary!";
     view.levelText.push(document.createElement('p'));
     view.levelText[1].textContent = "Lets make it a chalenge!";
     view.levelText.push(document.createElement('p'));
