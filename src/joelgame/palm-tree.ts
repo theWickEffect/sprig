@@ -16,7 +16,7 @@ import { J3 } from "./joel-game.js";
 // export const gameName = "Crimps Sharma - Dyno Master";
 
 export interface BackgroundAssets{
-    palmTrees?: Entity[];
+    palmTrees: Entity[];
     mountains?: Entity[];
     rocks?: Entity[];
     island?: Entity;
@@ -402,7 +402,15 @@ export module TreeBuilder{
         EM.set(island, PositionDef, V(0,0,0));
         console.log("island");
     }
-    export function mkRandPalmTree(base: V3, height: number = 13, hasNuts:boolean = Math.random() > .1){
+
+    export function killTrees(trees: Entity[]){
+        while(trees.length > 0){
+            EM.set(trees[trees.length-1],DeadDef);
+            trees.pop();
+        }
+    }
+
+    export function mkRandPalmTree(base: V3, height: number = 13, hasNuts:boolean = Math.random() > .1): Entity{
         const treeMesh = createEmptyMesh("palmTree");
         treeMesh.surfaceIds = [];
         let top = V(0,0,0);
@@ -425,6 +433,8 @@ export module TreeBuilder{
         const tree  = EM.mk();
         EM.set(tree, RenderableConstructDef,treeMeshFinal);
         EM.set(tree, PositionDef, V(0,0,0));
+        
+        return tree;
 
         function mkNuts(p: V3){
             const downDist = .5;

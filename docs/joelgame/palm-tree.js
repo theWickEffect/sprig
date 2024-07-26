@@ -364,6 +364,13 @@ export var TreeBuilder;
         console.log("island");
     }
     TreeBuilder.mkIsland = mkIsland;
+    function killTrees(trees) {
+        while (trees.length > 0) {
+            EM.set(trees[trees.length - 1], DeadDef);
+            trees.pop();
+        }
+    }
+    TreeBuilder.killTrees = killTrees;
     function mkRandPalmTree(base, height = 13, hasNuts = Math.random() > .1) {
         const treeMesh = createEmptyMesh("palmTree");
         treeMesh.surfaceIds = [];
@@ -387,6 +394,7 @@ export var TreeBuilder;
         const tree = EM.mk();
         EM.set(tree, RenderableConstructDef, treeMeshFinal);
         EM.set(tree, PositionDef, V(0, 0, 0));
+        return tree;
         function mkNuts(p) {
             const downDist = .5;
             let p1 = J3.clone(p);

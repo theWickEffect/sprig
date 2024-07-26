@@ -199,7 +199,9 @@ export const game: GameState = {
   }
 };
 
-export const backgroundAssets: BackgroundAssets = {};
+export const backgroundAssets: BackgroundAssets = {
+  palmTrees: [],
+};
 
 
 export async function initJoelGame() {
@@ -363,6 +365,7 @@ export async function initJoelGame() {
       explodeCountdown: 35,
       chossCountdown: 75,
     }
+    
 
     return world;
   }
@@ -511,13 +514,13 @@ export async function initJoelGame() {
   // changeWaterColor(V(1,0,0));
 
   if(world[game.level].hasTrees){
-    TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * -.5 - 4,0,0));
+    backgroundAssets.palmTrees.push(TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * -.5 - 4,0,0)));
   }
   // if(world[game.level].hasTrees && Math.random()>.8){
   //   TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * -.5 - 4,0,0));
   // }
   if(world[game.level].hasTrees){
-    TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * .5 + 1,0,0));
+    backgroundAssets.palmTrees.push(TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * .5 + 1,0,0)));
   }
   // if(Math.random()>.8){
   //   TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * .5 + 1,0,0));
@@ -790,11 +793,11 @@ export async function initJoelGame() {
     setIslandLoc(islandPos);
     changeWaterColor(world[game.level].waterColor);
     
+    //handle trees:
+    TreeBuilder.killTrees(backgroundAssets.palmTrees);
     if(world[game.level].hasTrees){
-
-    }
-    else{
-
+      backgroundAssets.palmTrees.push(TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * -.5 - 4,islandPos[1] + 5,0)));
+      backgroundAssets.palmTrees.push(TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * .5 + 1,islandPos[1] + 5,0)));    
     }
     // change island color?
     //make mountains?

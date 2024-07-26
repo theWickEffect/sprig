@@ -114,7 +114,9 @@ export const game = {
         countReset: 180,
     }
 };
-export const backgroundAssets = {};
+export const backgroundAssets = {
+    palmTrees: [],
+};
 export async function initJoelGame() {
     stdGridRender.fragOverrides.lineSpacing1 = 8.0;
     stdGridRender.fragOverrides.lineWidth1 = 0.05;
@@ -385,13 +387,13 @@ export async function initJoelGame() {
     console.log("changeWaterColor type: " + typeof changeWaterColor);
     // changeWaterColor(V(1,0,0));
     if (world[game.level].hasTrees) {
-        TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * -.5 - 4, 0, 0));
+        backgroundAssets.palmTrees.push(TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * -.5 - 4, 0, 0)));
     }
     // if(world[game.level].hasTrees && Math.random()>.8){
     //   TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * -.5 - 4,0,0));
     // }
     if (world[game.level].hasTrees) {
-        TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * .5 + 1, 0, 0));
+        backgroundAssets.palmTrees.push(TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * .5 + 1, 0, 0)));
     }
     // if(Math.random()>.8){
     //   TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * .5 + 1,0,0));
@@ -637,9 +639,11 @@ export async function initJoelGame() {
         islandPos = getIslandPos();
         setIslandLoc(islandPos);
         changeWaterColor(world[game.level].waterColor);
+        //handle trees:
+        TreeBuilder.killTrees(backgroundAssets.palmTrees);
         if (world[game.level].hasTrees) {
-        }
-        else {
+            backgroundAssets.palmTrees.push(TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * -.5 - 4, islandPos[1] + 5, 0)));
+            backgroundAssets.palmTrees.push(TreeBuilder.mkRandPalmTree(V(Math.random() * 3 + world[game.level].wallWidth * .5 + 1, islandPos[1] + 5, 0)));
         }
         // change island color?
         //make mountains?
