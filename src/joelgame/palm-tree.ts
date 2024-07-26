@@ -170,8 +170,8 @@ export module TreeBuilder{
 
     export function mkRocks(color: V3 = V(.1,.1,.1), loc: V3 = V(0,0,0)): Entity[]{
         // const rockChance = .98
-        const rockNumber = 75;
-        const spread = 60;
+        const rockNumber = 60;
+        const spread = 75;
         const constScale = 1;
         const randScale = 1;
         function getScale():number{

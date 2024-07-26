@@ -151,8 +151,8 @@ export var TreeBuilder;
     TreeBuilder.reviveMountains = reviveMountains;
     function mkRocks(color = V(.1, .1, .1), loc = V(0, 0, 0)) {
         // const rockChance = .98
-        const rockNumber = 75;
-        const spread = 60;
+        const rockNumber = 60;
+        const spread = 75;
         const constScale = 1;
         const randScale = 1;
         function getScale() {

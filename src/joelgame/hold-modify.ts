@@ -83,9 +83,9 @@ export module HoldMod {
         // console.log(ogPos);
         // console.log("shaking");
     }
-    export function updateColorsRand(holds: Hold[]){
+    export function updateColorsRand(holds: Hold[], holdsLen: number){
         let randColor = [Math.random(), Math.random(), Math.random()];
-        for(let i=0;i<holds.length-1;i++){
+        for(let i=0;i<holdsLen - 1;i++){
             if(!holds[i].explode && !holds[i].choss){
                 holds[i].entity.color[0] = randColor[0];
                 holds[i].entity.color[1] = randColor[1];

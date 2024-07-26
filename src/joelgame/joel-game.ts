@@ -42,6 +42,7 @@ import { DeadDef } from "../ecs/delete.js";
 import { PowerMeter } from "./power-meter.js";
 import { buildLossScreen, buildStartScreen, displayFinishText, displayScreen, displayStartScreen, pages, removeFinishText, removeScreen, removeStartScreen } from "./build-html.js";
 import { breakHeart, killHeart, updateHearts } from "./in-game-dynamic-html.js";
+import { CanvasDef } from "../render/canvas.js";
 
 const DBG_GHOST = false;
 const DEBUG = false;
@@ -313,12 +314,12 @@ export async function initJoelGame() {
   function populateWorld(): WorldParams[]{
     const world: WorldParams[] = [];
     world[0] = {
-      wallHeight: 20,
+      wallHeight: 25,
       wallWidth:20,
       CLUSTER_VERT_OFFSET: 3,
       CLUSTER_VERT_VAR: 5,
       CLUSTER_SIZE: 4,
-      hasTrees: true,
+      hasTrees: false,
       hasMountains: false,
       hasRocks: false,
       hasSky: true,
@@ -337,14 +338,14 @@ export async function initJoelGame() {
       CLUSTER_VERT_VAR: 5,
       CLUSTER_SIZE: 4,
       hasTrees: true,
-      hasMountains: true,
-      hasRocks: true,
+      hasMountains: false,
+      hasRocks: false,
       hasSky: true,
       wallColor: V(1,.1,0),
       waterColor: V(0,0,.6),
       mountainColor: V(.15,.05,.05),
-      explodeChance: .20,
-      chossChance: .32,
+      explodeChance: 0,
+      chossChance: 0,
       explodeCountdown: 35,
       chossCountdown: 75,
     }
@@ -362,6 +363,78 @@ export async function initJoelGame() {
       waterColor: V(0,0,.6),
       explodeChance: 0,
       chossChance: 0,
+      explodeCountdown: 35,
+      chossCountdown: 75,
+    }
+    world[3] = {
+      wallHeight: 45,
+      wallWidth:20,
+      CLUSTER_VERT_OFFSET: 3,
+      CLUSTER_VERT_VAR: 5,
+      CLUSTER_SIZE: 4,
+      hasTrees: false,
+      hasMountains: false,
+      hasRocks: true,
+      hasSky: true,
+      wallColor: V(1,.1,0),
+      waterColor: V(.2,.2,0),
+      mountainColor: V(.15,.15,.05),
+      explodeChance: 0,
+      chossChance: .6,
+      explodeCountdown: 35,
+      chossCountdown: 75,
+    }
+    world[4] = {
+      wallHeight: 45,
+      wallWidth:20,
+      CLUSTER_VERT_OFFSET: 3,
+      CLUSTER_VERT_VAR: 5,
+      CLUSTER_SIZE: 4,
+      hasTrees: false,
+      hasMountains: true,
+      hasRocks: true,
+      hasSky: true,
+      wallColor: V(1,.1,0),
+      waterColor: V(1,.6,0),
+      mountainColor: V(.15,.05,.05),
+      explodeChance: .32,
+      chossChance: 0,
+      explodeCountdown: 35,
+      chossCountdown: 75,
+    }
+    world[5] = {
+      wallHeight: 45,
+      wallWidth:20,
+      CLUSTER_VERT_OFFSET: 3,
+      CLUSTER_VERT_VAR: 5,
+      CLUSTER_SIZE: 4,
+      hasTrees: false,
+      hasMountains: true,
+      hasRocks: true,
+      hasSky: true,
+      wallColor: V(1,.1,0),
+      waterColor: V(.8,.2,0),
+      mountainColor: V(.25,.05,.05),
+      explodeChance: .20,
+      chossChance: .32,
+      explodeCountdown: 35,
+      chossCountdown: 75,
+    }
+    world[6] = {
+      wallHeight: 100,
+      wallWidth:20,
+      CLUSTER_VERT_OFFSET: 3,
+      CLUSTER_VERT_VAR: 5,
+      CLUSTER_SIZE: 4,
+      hasTrees: true,
+      hasMountains: true,
+      hasRocks: true,
+      hasSky: false,
+      wallColor: V(1,.1,0),
+      waterColor: V(1,0,0),
+      mountainColor: V(.35,.05,.05),
+      explodeChance: .20,
+      chossChance: .32,
       explodeCountdown: 35,
       chossCountdown: 75,
     }
@@ -780,8 +853,13 @@ export async function initJoelGame() {
     guy.jump.ok = false;
     startButton.onclick = () =>{
       removeStartScreen();
-      game.live = true;
-      guy.jump.ok = true;
+      const continueButton = displayScreen(pages.level[game.level]);
+      assert(continueButton);
+      continueButton.onclick = () =>{
+        removeScreen(pages.level[game.level]);
+        game.live = true;
+        guy.jump.ok = true;
+      }
     };
   }
 
@@ -866,6 +944,9 @@ export async function initJoelGame() {
       if(game.finish.count === 0){
         // game.live = false;
         removeFinishText();
+        EM.whenResources(CanvasDef).then((canvas) =>
+          canvas.htmlCanvas.unlockMouse()
+        );
         game.level++;
         if(game.level === world.length){
           displayScreen(pages.win);
@@ -877,6 +958,9 @@ export async function initJoelGame() {
           assert(continueButton);
           continueButton.onclick = () =>{
             removeScreen(pages.level[game.level]);
+            EM.whenResources(CanvasDef).then((canvas) =>
+              canvas.htmlCanvas.shouldLockMouseOnClick = true
+            );
             game.live = true;
           }
         }
@@ -898,6 +982,9 @@ export async function initJoelGame() {
         if(lifeControll.hearts === 0){
           // const lossScreen = buildLossScreen()
           displayScreen(pages.loss);
+          EM.whenResources(CanvasDef).then((canvas) =>
+            canvas.htmlCanvas.unlockMouse()
+          );
           // assert(resetButton);
           // resetButton.onclick = () =>{
           //   startGame();
@@ -1261,7 +1348,7 @@ export async function initJoelGame() {
       // console.log(controll);
       if(colorChangeCount> COLOR_CHANGE_OPEN && controll){
         colorChangeCount = 0;
-        HoldMod.updateColorsRand(holds); 
+        HoldMod.updateColorsRand(holds, holdsLen); 
       }
       
     }

@@ -46,14 +46,16 @@ function initViewText() {
     view.finishHeading.push(document.createElement('h3'));
     view.finishHeading[4].textContent = "Cool!";
     view.finishHeading.push(document.createElement('h3'));
-    view.finishHeading[5].textContent = "Done!";
+    view.finishHeading[5].textContent = "Nasty!";
+    view.finishHeading.push(document.createElement('h3'));
+    view.finishHeading[6].textContent = "Done!";
     view.smallTitle.textContent = view.title.textContent;
     view.levelTitle.push(document.createElement('h4'));
     view.levelTitle[0].textContent = "Training";
     view.levelTitle.push(document.createElement('h4'));
     view.levelTitle[1].textContent = "The Boulder";
     view.levelTitle.push(document.createElement('h4'));
-    view.levelTitle[2].textContent = "Free Solo";
+    view.levelTitle[2].textContent = "Sport";
     view.levelTitle.push(document.createElement('h4'));
     view.levelTitle[3].textContent = "Choss";
     view.levelTitle.push(document.createElement('h4'));
@@ -65,17 +67,17 @@ function initViewText() {
     view.levelText.push(document.createElement('p'));
     view.levelText[0].textContent = "Press, Drag, Release. No footwork necessary!";
     view.levelText.push(document.createElement('p'));
-    view.levelText[1].textContent = "Lets make it chalenging!";
+    view.levelText[1].textContent = "Lets make it a chalenge!";
     view.levelText.push(document.createElement('p'));
     view.levelText[2].textContent = "Ready for some endurance?";
     view.levelText.push(document.createElement('p'));
-    view.levelText[3].textContent = "Gray will eventually break. Move Quickly!";
+    view.levelText[3].textContent = "Gray holds are choss. Move Quickly!";
     view.levelText.push(document.createElement('p'));
     view.levelText[4].textContent = "Better not touch the black holds!";
     view.levelText.push(document.createElement('p'));
     view.levelText[5].textContent = "Now for a real challenge!";
     view.levelText.push(document.createElement('p'));
-    view.levelText[5].textContent = "Does this even go!?";
+    view.levelText[6].textContent = "Does this even go!?";
 }
 function markElementIds(view, pages) {
     for (let i = 0; i < view.finishHeading.length; i++) {
