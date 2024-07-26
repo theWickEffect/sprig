@@ -155,6 +155,9 @@ export interface WorldParams {
   CLUSTER_VERT_VAR: number;
   CLUSTER_SIZE: number;
   hasTrees: boolean;
+  hasMountains: boolean;
+  hasRocks: boolean;
+  hasSky: boolean;
   wallColor: V3;
   waterColor: V3;
   explodeChance: number;
@@ -303,6 +306,9 @@ export async function initJoelGame() {
       CLUSTER_VERT_VAR: 5,
       CLUSTER_SIZE: 4,
       hasTrees: true,
+      hasMountains: false,
+      hasRocks: false,
+      hasSky: true,
       wallColor: V(1,.1,0),
       waterColor: V(0,0,.6),
       explodeChance: 0,
@@ -317,6 +323,9 @@ export async function initJoelGame() {
       CLUSTER_VERT_VAR: 5,
       CLUSTER_SIZE: 4,
       hasTrees: true,
+      hasMountains: false,
+      hasRocks: false,
+      hasSky: true,
       wallColor: V(1,.1,0),
       waterColor: V(0,0,.6),
       explodeChance: .20,
@@ -331,6 +340,9 @@ export async function initJoelGame() {
       CLUSTER_VERT_VAR: 5,
       CLUSTER_SIZE: 2.5,
       hasTrees: true,
+      hasMountains: false,
+      hasRocks: false,
+      hasSky: true,
       wallColor: V(1,.1,0),
       waterColor: V(0,0,.6),
       explodeChance: 0,
@@ -823,7 +835,6 @@ export async function initJoelGame() {
           }
         }
       }
-
     }
 
     //controlling lives left and hearts display

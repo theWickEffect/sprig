@@ -1,6 +1,6 @@
 import { assert } from "../utils/util.js";
 import { game } from "./joel-game.js";
-const view = {
+export const view = {
     topDiv: document.getElementById("top-div"),
     title: document.createElement("h1"),
     smallTitle: document.createElement("h2"),
@@ -19,7 +19,13 @@ let playFunction = () => { };
 view.playButton.onclick = () => { playFunction(); };
 assert(view.topDiv);
 initViewText();
-markViewElements();
+export const pages = {
+    home: buildStartScreen(),
+    loss: buildLossScreen(),
+    level: buildLevelPages(),
+    win: buildWinScreen(),
+};
+markElementIds(view, pages);
 function initViewText() {
     view.title.textContent = "Wall Rider 9000";
     view.instructions.textContent = "Controlls: Click, Drag, Release";
@@ -32,52 +38,53 @@ function initViewText() {
     view.finishHeading.push(document.createElement('h3'));
     view.finishHeading[0].textContent = "Nice!";
     view.finishHeading.push(document.createElement('h3'));
-    view.finishHeading[0].textContent = "Sick!";
+    view.finishHeading[1].textContent = "Sick!";
     view.finishHeading.push(document.createElement('h3'));
-    view.finishHeading[0].textContent = "Sweet!";
+    view.finishHeading[2].textContent = "Sweet!";
     view.finishHeading.push(document.createElement('h3'));
-    view.finishHeading[0].textContent = "Spicy!";
+    view.finishHeading[3].textContent = "Spicy!";
     view.finishHeading.push(document.createElement('h3'));
-    view.finishHeading[0].textContent = "Cool!";
+    view.finishHeading[4].textContent = "Cool!";
     view.finishHeading.push(document.createElement('h3'));
-    view.finishHeading[0].textContent = "Done!";
+    view.finishHeading[5].textContent = "Done!";
     view.smallTitle.textContent = view.title.textContent;
     view.levelTitle.push(document.createElement('h4'));
-    view.levelTitle[0].textContent = "Tutorial Title";
+    view.levelTitle[0].textContent = "Training";
     view.levelTitle.push(document.createElement('h4'));
-    view.levelTitle[1].textContent = "Level 1 Title";
+    view.levelTitle[1].textContent = "The Boulder";
     view.levelTitle.push(document.createElement('h4'));
-    view.levelTitle[2].textContent = "Level 2 Title";
+    view.levelTitle[2].textContent = "Free Solo";
     view.levelTitle.push(document.createElement('h4'));
-    view.levelTitle[3].textContent = "Level 3 Title";
+    view.levelTitle[3].textContent = "Choss";
     view.levelTitle.push(document.createElement('h4'));
-    view.levelTitle[4].textContent = "Level 4 Title";
+    view.levelTitle[4].textContent = "Mega-Choss";
     view.levelTitle.push(document.createElement('h4'));
-    view.levelTitle[5].textContent = "Level 5 Title";
+    view.levelTitle[5].textContent = "The Proj";
+    view.levelTitle.push(document.createElement('h4'));
+    view.levelTitle[6].textContent = "The Mega-Proj";
     view.levelText.push(document.createElement('p'));
-    view.levelText[0].textContent = "tutorial text";
+    view.levelText[0].textContent = "Press, Drag, Release. No footwork necessary!";
     view.levelText.push(document.createElement('p'));
-    view.levelText[1].textContent = "level 1 text";
+    view.levelText[1].textContent = "Lets make it chalenging!";
     view.levelText.push(document.createElement('p'));
-    view.levelText[2].textContent = "level 2 text";
+    view.levelText[2].textContent = "Ready for some endurance?";
     view.levelText.push(document.createElement('p'));
-    view.levelText[3].textContent = "level 3 text";
+    view.levelText[3].textContent = "Gray will eventually break. Move Quickly!";
     view.levelText.push(document.createElement('p'));
-    view.levelText[4].textContent = "level 4 text";
+    view.levelText[4].textContent = "Better not touch the black holds!";
     view.levelText.push(document.createElement('p'));
-    view.levelText[5].textContent = "level 5 text";
+    view.levelText[5].textContent = "Now for a real challenge!";
+    view.levelText.push(document.createElement('p'));
+    view.levelText[5].textContent = "Does this even go!?";
 }
-function markViewElements() {
+function markElementIds(view, pages) {
     for (let i = 0; i < view.finishHeading.length; i++) {
-        view.finishHeading[i].setAttribute("id", "finishText");
+        view.finishHeading[i].setAttribute("id", "finish-text");
     }
+    // for(let i=0;i<pages.level.length;i++){
+    //     pages.level[i].setAttribute("id", "level-div");
+    // }
 }
-export const pages = {
-    home: buildStartScreen(),
-    loss: buildLossScreen(),
-    level: buildLevelPages(),
-    win: buildWinScreen(),
-};
 view.winContinueButton.onclick = () => {
     window.location.reload();
 };
@@ -150,7 +157,7 @@ export function removeFinishText(level = game.level) {
     view.topDiv?.removeChild(view.finishHeading[level]);
 }
 export function displayScreen(screen) {
-    console.log("display: " + screen.getAttribute("id"));
+    // console.log("display: "+ screen.getAttribute("id"));
     view.topDiv?.appendChild(screen);
     return screen.querySelector("button");
 }

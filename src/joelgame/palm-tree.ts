@@ -12,6 +12,8 @@ import { assert } from "../utils/util-no-import.js";
 import { createEmptyMesh } from "../wood/wood.js";
 import { J3 } from "./joel-game.js";
 
+export const gameName = "Crimps Sharma - Dyno Master";
+
 export module TreeBuilder{
     // let waterMesh: Mesh;
 
