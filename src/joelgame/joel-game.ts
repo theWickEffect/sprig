@@ -47,6 +47,7 @@ import { CanvasDef } from "../render/canvas.js";
 const DBG_GHOST = false;
 const DEBUG = false;
 
+
 // tmpStack()
 
 function assert(condition: any, msg?: string): asserts condition {
@@ -195,8 +196,8 @@ export const game: GameState = {
   frameCount: 0,
   finish: {
     finish: false,
-    count: 180,
-    countReset: 180,
+    count: 360,
+    countReset: 360,
   }
 };
 
@@ -397,7 +398,7 @@ export async function initJoelGame() {
       wallColor: V(1,.1,0),
       waterColor: V(1,.6,0),
       mountainColor: V(.15,.05,.05),
-      explodeChance: .32,
+      explodeChance: .29,
       chossChance: 0,
       explodeCountdown: 35,
       chossCountdown: 75,

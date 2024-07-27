@@ -1,7 +1,9 @@
 import { assert } from "../utils/util.js";
 import { game } from "./joel-game.js";
+export const GAME_NAME = "Wall Rider 9000";
 export const view = {
     topDiv: document.getElementById("top-div"),
+    finishDiv: document.getElementById("finish-text-div"),
     title: document.createElement("h1"),
     smallTitle: document.createElement("h2"),
     instructions: document.createElement("p"),
@@ -27,7 +29,7 @@ export const pages = {
 };
 markElementIds(view, pages);
 function initViewText() {
-    view.title.textContent = "Wall Rider 9000";
+    view.title.textContent = GAME_NAME;
     view.instructions.textContent = "Controlls: Click, Drag, Release";
     view.playButton.textContent = "Play";
     view.winContinueButton.textContent = "Play Again";
@@ -71,7 +73,7 @@ function initViewText() {
     view.levelText.push(document.createElement('p'));
     view.levelText[2].textContent = "Ready for some endurance?";
     view.levelText.push(document.createElement('p'));
-    view.levelText[3].textContent = "Gray holds are choss. Move Quickly!";
+    view.levelText[3].textContent = "Gray holds will break. Move Quickly!";
     view.levelText.push(document.createElement('p'));
     view.levelText[4].textContent = "Better not touch the black holds!";
     view.levelText.push(document.createElement('p'));
@@ -115,9 +117,21 @@ export function buildLevelScreen(levelNum) {
     levelDiv.appendChild(view.smallTitle);
     levelDiv.appendChild(view.levelTitle[levelNum]);
     levelDiv.appendChild(view.levelText[levelNum]);
+    // const titleDiv = document.createElement("div");
+    // titleDiv.setAttribute("id","level-title-div");
+    // titleDiv.appendChild(view.levelTitle[levelNum]);
+    // levelDiv.appendChild(titleDiv);
+    // const textDiv = document.createElement("div");
+    // textDiv.setAttribute("id","level-text-div");
+    // textDiv.appendChild(view.levelText[levelNum])
+    // levelDiv.appendChild(textDiv);
+    // levelDiv.appendChild()
+    const levButtonDiv = document.createElement("div");
+    levButtonDiv.setAttribute("id", "button-div");
     const continueButton = document.createElement("button");
     continueButton.textContent = "Continue";
-    levelDiv.appendChild(continueButton);
+    levButtonDiv.appendChild(continueButton);
+    levelDiv.appendChild(levButtonDiv);
     //to do: add a graphic?
     return levelDiv;
 }
@@ -152,11 +166,11 @@ export function displayStartScreen() {
 }
 export function displayFinishText(level = game.level) {
     // assert(view.topDiv);
-    view.topDiv?.appendChild(view.finishHeading[level]);
+    view.finishDiv?.appendChild(view.finishHeading[level]);
     // return () => {view.topDiv?.removeChild(view.finishHeading)};
 }
 export function removeFinishText(level = game.level) {
-    view.topDiv?.removeChild(view.finishHeading[level]);
+    view.finishDiv?.removeChild(view.finishHeading[level]);
 }
 export function displayScreen(screen) {
     // console.log("display: "+ screen.getAttribute("id"));
