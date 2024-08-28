@@ -80,6 +80,32 @@ export var PowerMeter;
             meter.power.color[1] = Math.min(1, 1 - (power - tqPow) / qPow);
         }
     }
+    // function getPower(power, meter, powerScale = .035, maxPower = 200) {
+    //     const meterLevel = Math.min(meter.minHt + power * powerScale, meter.maxHt);
+    //     meter.powerMesh.pos[2][2] = meterLevel;
+    //     meter.powerMesh.pos[3][2] = meterLevel;
+    //     meter.power.renderable.meshHandle.pool.updateMeshVertices(meter.power.renderable.meshHandle, meter.powerMesh);
+    //     // let poszTemp = meter.power.position[2];
+    //     // meter.power.position[2] = 0;
+    //     // meter.power.scale[2] = power;
+    //     // meter.power.position[2] = poszTemp;
+    //     const qPow = maxPower * .25;
+    //     const halfPow = maxPower / 2;
+    //     const tqPow = maxPower * .75;
+    //     // console.log(power);
+    //     if (power <= halfPow) {
+    //         meter.power.color[0] = 0;
+    //         meter.power.color[1] = 1;
+    //     }
+    //     else if (power <= tqPow) {
+    //         meter.power.color[0] = power - halfPow / qPow;
+    //         meter.power.color[1] = 1;
+    //     }
+    //     else {
+    //         meter.power.color[0] = 1;
+    //         meter.power.color[1] = Math.min(1, 1 - (power - tqPow) / qPow);
+    //     }
+    // }
     PowerMeter.updatePower = updatePower;
 })(PowerMeter || (PowerMeter = {}));
 //# sourceMappingURL=power-meter.js.map

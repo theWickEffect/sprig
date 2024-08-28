@@ -98,6 +98,9 @@
     }
 
     #loss-div {
+      display:grid;
+      grid-template-columns: 15%,1fr,15%;
+      grid-template-rows: 20%, 1fr, 1fr, 1fr, 20%;
       z-index: 12;
       position: absolute;
       width: 100%;
@@ -105,10 +108,32 @@
       background-color: rgb(52, 0, 52);
       color: rgb(189, 4, 4);
       /* color: #d7f9fc; */
-      font-family: "Libre Barcode 128 Text", system-ui;
-      font-size: 100px;
+      font-family: "Share Tech Mono", monospace;
+      font-size: 70px;
       text-align: center;
       font-weight:normal;
+      h{
+        grid-column: 2;
+        grid-row: 2;
+        font-size: 100px;
+        text-align: center;
+        font-weight:normal;
+      }
+      p{
+        grid-column: 2;
+        grid-row: 3;
+        font-size: 50px;
+        color: rgb(190, 237, 121);
+        text-align: center;
+        font-weight: normal;
+      }
+      #button-div{
+        grid-column: 2;
+        grid-row: 4;
+        text-align: center;
+        font-weight: normal;
+      }
+
     }
 
     #level-div {
@@ -175,13 +200,13 @@
     } */
     #finish-text-div{
       position: absolute;
-      right: 45%;
+      right: 39%;
       top: 40%;
       width: 70%;
-      color: #d200b6;
+      color: #04e2e2;
       font-family: "Share Tech Mono", monospace;
       /* font-size: 48px; */
-      font-size: 4.2cap;
+      font-size: 9cap;
       text-align: right;
       font-weight:normal;
     }
@@ -206,6 +231,51 @@
       left: 24px;
       text-align: left;
     }
+
+    #power-meter-div{
+      font-size: 30px;
+      width:40%;
+      position:absolute;
+      bottom: 24px;
+      left: 20%;
+      /* right: 1fr */
+      text-align: center;
+      /* align-self: center; */
+    }
+
+    meter{
+      width: 60vmax;
+      height: 40px;
+      left: 20%;
+      text-align: center;
+      
+    }
+
+    meter::-webkit-meter-bar{
+      /* fill-color:rgb(227, 10, 147); */
+      /* border-color: rgb(0, 255, 213); */
+      background-color: black;
+    }
+    meter::-webkit-meter-optimum-value {
+      background-color: rgb(227, 10, 147);
+      /* background-image: lineargradient(
+        90deg, 
+        #ea1d1a 5%, 
+        #ea511a 5%, 
+        #ea7f1a 5%, 
+        #eacb1a 5%, 
+        #bdea1a 5%, 
+        #7bea1a 5%, 
+        #24ea1a 40%, 
+        #7bea1a 5%, 
+        #bdea1a 5%, 
+        #eacb1a 5%, 
+        #ea7f1a 5%, 
+        #ea511a 5%, 
+        #ea1d1a 5%, 
+      ); */
+      background-size: 100% 100%;
+    }
   </style>
 </head>
 
@@ -215,6 +285,7 @@
   </script>
   <div id="top-div"></div>
   <div id ="hearts-div"></div>
+  <div id = "power-meter-div"></div>
 
   
 

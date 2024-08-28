@@ -11,8 +11,10 @@ export const view = {
     winContinueButton: document.createElement("button"),
     lossContinueButton: document.createElement("button"),
     goButton: document.createElement("button"),
+    lossText: document.createElement("p"),
     lossHeading: document.createElement("h3"),
     winHeading: document.createElement("h3"),
+    winText: document.createElement("p"),
     finishHeading: [],
     levelText: [],
     levelTitle: [],
@@ -35,8 +37,9 @@ function initViewText() {
     view.winContinueButton.textContent = "Play Again";
     view.lossContinueButton.textContent = "Play Again";
     view.goButton.textContent = "Lets Go!";
-    view.lossHeading.textContent = "You Loose";
-    view.winHeading.textContent = "You Win!";
+    view.lossText.textContent = "Next go for sure!";
+    view.winHeading.textContent = "You sent the mega-proj!";
+    view.winText.textContent = "All hail the Dyno-Master!";
     view.finishHeading.push(document.createElement('h3'));
     view.finishHeading[0].textContent = "Nice!";
     view.finishHeading.push(document.createElement('h3'));
@@ -114,7 +117,7 @@ export function buildLevelPages() {
 export function buildLevelScreen(levelNum) {
     const levelDiv = document.createElement("div");
     levelDiv.setAttribute("id", "level-div");
-    levelDiv.appendChild(view.smallTitle);
+    // levelDiv.appendChild(view.smallTitle);
     levelDiv.appendChild(view.levelTitle[levelNum]);
     levelDiv.appendChild(view.levelText[levelNum]);
     // const titleDiv = document.createElement("div");
@@ -138,8 +141,9 @@ export function buildLevelScreen(levelNum) {
 export function buildWinScreen() {
     const winDiv = document.createElement("div");
     winDiv.setAttribute("id", "win-div");
-    winDiv.appendChild(view.smallTitle);
+    // winDiv.appendChild(view.smallTitle);
     winDiv.appendChild(view.winHeading);
+    winDiv.appendChild(view.winText);
     winDiv.appendChild(view.winContinueButton);
     //to do: add a graphic?
     return winDiv;
@@ -147,8 +151,10 @@ export function buildWinScreen() {
 export function buildLossScreen() {
     const lossDiv = document.createElement("div");
     lossDiv.setAttribute("id", "loss-div");
-    lossDiv.appendChild(view.smallTitle);
+    // lossDiv.appendChild(view.smallTitle);
     lossDiv.appendChild(view.lossHeading);
+    lossDiv.appendChild(view.lossText);
+    // buttonDiv
     lossDiv.appendChild(view.lossContinueButton);
     //to do: add a graphic?
     return lossDiv;

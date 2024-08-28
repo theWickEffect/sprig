@@ -41,7 +41,7 @@ import { HoldMod } from "./hold-modify.js";
 import { DeadDef } from "../ecs/delete.js";
 import { PowerMeter } from "./power-meter.js";
 import { buildLossScreen, buildStartScreen, displayFinishText, displayScreen, displayStartScreen, pages, removeFinishText, removeScreen, removeStartScreen } from "./build-html.js";
-import { breakHeart, killHeart, updateHearts } from "./in-game-dynamic-html.js";
+import { breakHeart, killHeart, updateHearts, updatePowerMeter } from "./in-game-dynamic-html.js";
 import { CanvasDef } from "../render/canvas.js";
 
 const DBG_GHOST = false;
@@ -747,7 +747,7 @@ export async function initJoelGame() {
 
   const GRAVITY = .008
   const STICK_ITTERATIONS = 20;
-  const powerMeter: PowerMeter.PM = await PowerMeter.mk();
+  // const powerMeter: PowerMeter.PM = await PowerMeter.mk();
   // const WATER_STICK_ITTERATIONS = 10;
   // const WATER_MOTION = true;
   let waitCount = 60;
@@ -1181,19 +1181,22 @@ export async function initJoelGame() {
           const a = mouseStart[0]-mousePosition[0];
           const b = mouseStart[1]-mousePosition[1];
           const power = Math.sqrt(a*a + b*b);
-          PowerMeter.updatePower(power,powerMeter)
+          // PowerMeter.updatePower(power,powerMeter)
+          updatePowerMeter(power);
         }
         else {
           ReleaseJump();
           endAndResetActionAudio(stretchAudio);
           mouseIsPressed = false;
-          PowerMeter.updatePower(0,powerMeter);
+          // PowerMeter.updatePower(0,powerMeter);
+          updatePowerMeter(0);
         }
       }
       else if(mouseIsPressed && !guy.jump.ok){
         endAndResetActionAudio(stretchAudio);
         mouseIsPressed = false;
-        PowerMeter.updatePower(0,powerMeter);
+        updatePowerMeter(0);
+        // PowerMeter.updatePower(0,powerMeter);
       }
     }
 
@@ -1354,7 +1357,7 @@ export async function initJoelGame() {
       
     }
 
-    PowerMeter.updatePos(cameraPosition,powerMeter);
+    // PowerMeter.updatePos(cameraPosition,powerMeter);
 
   });
 
