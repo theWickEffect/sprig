@@ -29,6 +29,7 @@ import { DeadDef } from "../ecs/delete.js";
 import { displayFinishText, displayScreen, displayStartScreen, pages, removeFinishText, removeScreen, removeStartScreen } from "./build-html.js";
 import { breakHeart, killHeart, updateHearts, updatePowerMeter } from "./in-game-dynamic-html.js";
 import { CanvasDef } from "../render/canvas.js";
+import { checkForCollision } from "./collisions.js";
 const DBG_GHOST = false;
 const DEBUG = false;
 // tmpStack()
@@ -1085,7 +1086,8 @@ export async function initJoelGame() {
             // for(const hold of holds){
             for (let i = 0; i < holdsLen; i++) {
                 const hold = holds[i];
-                if (J3.dist(guy.jumpHand.position, hold.catchPoint) < guy.jump.catchAcuracy) {
+                // if(J3.dist(guy.jumpHand.position, hold.catchPoint) < guy.jump.catchAcuracy){
+                if (checkForCollision(guy.jumpHand.prevPosition, guy.jumpHand.position, hold.catchPoint, guy.jump.catchAcuracy)) {
                     J3.copy(guy.jumpHand.position, hold.catchPoint);
                     guy.hold = hold;
                     if (hold.explode || hold.choss)
