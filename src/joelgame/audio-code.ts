@@ -160,8 +160,13 @@ export function endAndResetActionAudio(aad: ActionAudioData){
     endActionAudio(aad);
 }
 
-export function endActionAudio(aad: ActionAudioData){
-    aad.endElements[0].play();
+export function endActionAudio(aad: ActionAudioData, rand: boolean = true){
+    if(rand) randEndActoinAudio(aad);
+    else aad.endElements[0].play();
+}
+
+export function randEndActoinAudio(aad: ActionAudioData){
+    aad.endElements[getRandomInt(0, aad.endElements.length)].play();
 }
 
 export function resetActionAudio(aad: ActionAudioData){
